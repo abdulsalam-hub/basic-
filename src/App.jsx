@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase.js';
 import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap } from 'lucide-react';
 
 const categories = ['All businesses', 'Fashion', 'Food & groceries', 'Beauty', 'Home & living', 'Services'];
@@ -21,13 +23,34 @@ function App() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({business:'', owner:'', category:'Fashion', city:'', phone:''});
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const filtered = useMemo(() => listings.filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query]);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const message = `Hello NaijaShelf! I'd like to list my business. Business: ${form.business}. Owner: ${form.owner}. Category: ${form.category}. City: ${form.city}. WhatsApp: ${form.phone}. Please share the next steps and pricing.`;
-    window.open(waLink(message), '_blank', 'noopener,noreferrer');
-    setSent(true);
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      await addDoc(collection(db, 'sellerSubmissions'), {
+        businessName: form.business.trim(),
+        ownerName: form.owner.trim(),
+        category: form.category,
+        city: form.city.trim(),
+        whatsapp: form.phone.trim(),
+        status: 'pending',
+        source: 'website',
+        createdAt: serverTimestamp()
+      });
+      const message = `Hello NaijaShelf! I've submitted my listing request. Business: ${form.business}. Owner: ${form.owner}. Category: ${form.category}. City: ${form.city}. WhatsApp: ${form.phone}. Please share the next steps and pricing.`;
+      window.open(waLink(message), '_blank', 'noopener,noreferrer');
+      setSent(true);
+    } catch (error) {
+      console.error('Seller submission failed:', error);
+      setSubmitError('We could not save your request. Please check your connection and try again, or contact us on WhatsApp.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return <div className="site-shell">
@@ -98,7 +121,7 @@ function App() {
     </main>
     <footer className="footer"><a className="brand footer-brand" href="#"><span className="brand-mark"><Store size={17}/></span><span>naija<span className="brand-light">shelf</span><i>.</i></span></a><span className="footer-copy">A little more local, a lot more connected.</span><div className="footer-links"><a href="#discover">Explore</a><a href="#pricing">For sellers</a><a href="#faq">FAQs</a></div><span className="copyright">© {new Date().getFullYear()} NaijaShelf</span></footer>
 
-    {modal && <div className="modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(false)}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button className="modal-close" onClick={()=>{setModal(false);setSent(false)}} aria-label="Close"><X/></button><div className="eyebrow">LET'S GET YOU SEEN</div><h2 id="modal-title">Put your business<br/><em>on the shelf.</em></h2><p className="modal-intro">Tell us a little about your business. We'll open WhatsApp with your details so you can send your listing request.</p><form onSubmit={submit}><label>Business name<input required value={form.business} onChange={e=>setForm({...form,business:e.target.value})} placeholder="e.g. Ada's Kitchen"/></label><label>Your name<input required value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Your full name"/></label><div className="form-row"><label>Business category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select></label><label>City<input required value={form.city} onChange={e=>setForm({...form,city:e.target.value})} placeholder="e.g. Lagos"/></label></div><label>Business WhatsApp number<input required value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+234..."/></label><button className="btn btn-dark full submit-btn" type="submit">Continue to WhatsApp <ArrowUpRight size={17}/></button><small className="privacy-note">Your details are used only to respond to your listing request. By continuing, you choose to send this message through WhatsApp.</small></form></div></div>}
+    {modal && <div className="modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(false)}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button className="modal-close" onClick={()=>{setModal(false);setSent(false)}} aria-label="Close"><X/></button><div className="eyebrow">LET'S GET YOU SEEN</div><h2 id="modal-title">Put your business<br/><em>on the shelf.</em></h2><p className="modal-intro">Tell us a little about your business. We'll open WhatsApp with your details so you can send your listing request.</p><form onSubmit={submit}><label>Business name<input required value={form.business} onChange={e=>setForm({...form,business:e.target.value})} placeholder="e.g. Ada's Kitchen"/></label><label>Your name<input required value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Your full name"/></label><div className="form-row"><label>Business category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select></label><label>City<input required value={form.city} onChange={e=>setForm({...form,city:e.target.value})} placeholder="e.g. Lagos"/></label></div><label>Business WhatsApp number<input required value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+234..."/></label>{submitError && <p className="form-error" role="alert">{submitError}</p>}<button className="btn btn-dark full submit-btn" type="submit" disabled={submitting}>{submitting ? 'Saving your request…' : 'Save request & continue to WhatsApp'} <ArrowUpRight size={17}/></button><small className="privacy-note">Your details are used only to respond to your listing request. By continuing, you choose to send this message through WhatsApp.</small></form></div></div>}
   </div>
 }
 export default App;
