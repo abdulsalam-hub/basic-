@@ -52,3 +52,30 @@ Admin access is intentionally not exposed through a client-side password or publ
 
 ### Current scope
 This is the first database integration: seller submissions are stored in Firestore. The public directory still contains clearly labelled illustrative examples until real businesses are reviewed and published. Merchant accounts, admin dashboard, image uploads, and subscription payments are separate next milestones.
+
+## NaijaShelf admin dashboard
+- Visit `/admin` on the website.
+- Sign in using a Firebase Authentication Email/Password account with the custom claim `admin: true`.
+- Review seller submissions, contact sellers, approve and publish, or reject with an optional reason.
+- Approved records are written to `businesses` and appear in the public directory. Sample preview cards remain labelled as samples.
+
+### Enable administrator access
+1. In Firebase Console → Authentication → Sign-in method, enable **Email/Password**.
+2. Create your administrator user in Authentication → Users.
+3. Grant that user's custom claim `admin: true` from a trusted Admin SDK environment. Never expose a service-account private key in browser code or commit it to GitHub.
+4. Sign out and sign back in at `/admin` to refresh the ID token.
+
+Example one-time Node script (run in a private local folder after installing `firebase-admin` and placing a downloaded service-account JSON file there):
+```js
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import serviceAccount from './service-account.json' with { type: 'json' };
+
+initializeApp({ credential: cert(serviceAccount) });
+const email = process.argv[2];
+if (!email) throw new Error('Pass the exact administrator email.');
+const user = await getAuth().getUserByEmail(email);
+await getAuth().setCustomUserClaims(user.uid, { admin: true });
+console.log('Administrator claim enabled for', email);
+```
+Keep the service-account file private, add it to .gitignore, and delete it after use. If your Node version does not support JSON import attributes, read and parse the JSON with Node's fs module instead.
