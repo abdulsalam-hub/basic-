@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useEffect, useMemo, useState } from 'react';
+import { addDoc, collection, onSnapshot, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
 import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap } from 'lucide-react';
 
@@ -25,7 +25,10 @@ function App() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const filtered = useMemo(() => listings.filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query]);
+  const [published, setPublished] = useState([]);
+  useEffect(() => onSnapshot(query(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
+  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').split(/\\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
+  const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -96,13 +99,13 @@ function App() {
       <section className="discover section" id="discover">
         <div className="section-top"><div><div className="eyebrow">A LITTLE CLOSER TO HOME</div><h2>Find your next <em>favourite.</em></h2><p className="section-sub">Explore the people, products and services making things happen.</p></div><a className="text-link" href="#seller">Own a business? Get discovered <ArrowUpRight size={16}/></a></div>
         <div className="category-row">{categories.map(cat=><button key={cat} className={active===cat?'category active':'category'} onClick={()=>setActive(cat)}>{cat}</button>)}</div>
-        <div className="results-line"><span>{filtered.length} curated examples</span><span className="demo-label">Preview listings · Demo content</span></div>
+        <div className="results-line"><span>{filtered.length} businesses</span><span className="demo-label">Preview listings · Demo content</span></div>
         <div className="business-grid">{filtered.map(item=><article className="business-card" key={item.id}>
-          <div className={`card-art ${item.color}`}><span className="card-monogram">{item.initials}</span><span className="card-tag">{item.tag}</span><span className="card-demo">SAMPLE</span></div>
+          <div className={`card-art ${item.color}`}><span className="card-monogram">{item.initials}</span><span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
           <div className="card-content"><div className="card-meta"><span>{item.category}</span><span className="meta-dot">·</span><span>{item.location}</span></div><h3>{item.name}</h3><p>{item.description}</p><div className="card-footer"><span className="product-tags">{item.products.join(' · ')}</span><span className="arrow-circle"><ArrowUpRight size={16}/></span></div></div>
         </article>)}</div>
         {filtered.length===0 && <div className="empty-state"><Search size={25}/><h3>No matches just yet</h3><p>Try another search or category.</p><button className="btn btn-outline" onClick={()=>{setQuery('');setActive('All businesses')}}>Clear filters</button></div>}
-        <div className="directory-note"><CircleHelp size={16}/> These are illustrative sample listings. Real seller profiles will be published as businesses join the founding programme.</div>
+        <div className="directory-note"><CircleHelp size={16}/> Sample cards are illustrative previews. Approved seller applications appear here as real business listings.</div>
       </section>
 
       <section className="seller-band" id="seller"><div className="seller-copy"><div className="eyebrow eyebrow-light">FOR THE PEOPLE WHO MAKE IT HAPPEN</div><h2>Your business has a story.<br/><em>Let's get it seen.</em></h2><p>Give customers one simple place to discover what you do, browse what you offer and reach you on WhatsApp. No complicated setup. No big-agency price tag.</p><button className="btn btn-cream" onClick={()=>setModal(true)}>Get your business listed <ArrowRight size={17}/></button><span className="seller-caption">Founding seller spots are now open.</span></div><div className="seller-visual"><div className="seller-card"><div className="seller-card-top"><span className="mini-logo">n.</span><span className="live-pill"><i/> YOUR STORE, ONLINE</span></div><div className="seller-card-image"><span>Made with<br/><b>intention.</b></span><div className="seller-shape"/></div><div className="seller-card-bottom"><span><b>Your brand.</b><small>Your products. Your people.</small></span><span className="seller-cart"><ShoppingBag size={18}/></span></div></div><div className="seller-sticker">YOUR LINK.<br/>YOUR STORY.<br/>YOUR SALES.</div></div></section>
