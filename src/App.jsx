@@ -11,7 +11,8 @@ const listings = [
   { id:6, name:'Thread Theory', category:'Fashion', location:'Enugu', tag:'Made with detail', description:'Modern staples and custom pieces with a personal touch.', initials:'TT', color:'yellow', products:['Custom outfits','Ready-to-wear'], demo:true }
 ];
 
-const waLink = (message) => 'https://wa.me/?text=' + encodeURIComponent(message);
+const BUSINESS_WHATSAPP = '2348021289677';
+const waLink = (message) => `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(message)}`;
 
 function App() {
   const [active, setActive] = useState('All businesses');
