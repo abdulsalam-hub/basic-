@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://naijashelf.vercel.app/sitemap.xml
