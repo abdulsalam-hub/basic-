@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /businesses/{businessId} {
+      allow read: if resource.data.status == 'approved';
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /sellerSubmissions/{submissionId} {
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          'businessName', 'ownerName', 'category', 'city', 'whatsapp',
+          'status', 'source', 'createdAt'
+        ]) &&
+        request.resource.data.businessName is string &&
+        request.resource.data.businessName.size() >= 2 &&
+        request.resource.data.businessName.size() <= 100 &&
+        request.resource.data.ownerName is string &&
+        request.resource.data.ownerName.size() >= 2 &&
+        request.resource.data.ownerName.size() <= 100 &&
+        request.resource.data.category is string &&
+        request.resource.data.city is string &&
+        request.resource.data.city.size() <= 80 &&
+        request.resource.data.whatsapp is string &&
+        request.resource.data.whatsapp.size() >= 7 &&
+        request.resource.data.whatsapp.size() <= 25 &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.source == 'website';
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
