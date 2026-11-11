@@ -40,7 +40,40 @@ const [sortBy, setSortBy] = useState('newest');
   const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
   const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
-  const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
+ 
+const filtered = useMemo(() => {
+  let results = [...liveListings, ...listings].filter(item => {
+    const matchesCategory =
+      active === 'All businesses' || item.category === active;
+
+    const matchesSearch =
+      (item.name + item.category + item.location + item.description)
+        .toLowerCase()
+        .includes(query.toLowerCase());
+
+    const matchesLocation =
+      selectedLocation === 'All locations' ||
+      (item.location || '').toLowerCase() === selectedLocation.toLowerCase();
+
+    return matchesCategory && matchesSearch && matchesLocation;
+  });
+
+  results.sort((a, b) => {
+    if (sortBy === 'alphabetical') {
+      return a.name.localeCompare(b.name);
+    }
+
+    if (sortBy === 'newest') {
+      return (b.createdAt?.toMillis?.() || 0) -
+        (a.createdAt?.toMillis?.() || 0);
+    }
+
+    return 0;
+  });
+
+  return results;
+}, [active, query, liveListings, selectedLocation, sortBy]);
+
 
   const submit = async (e) => {
     e.preventDefault();
