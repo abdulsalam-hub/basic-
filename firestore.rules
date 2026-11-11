@@ -8,6 +8,48 @@ service cloud.firestore {
     match /businesses/{businessId} {
       allow read: if resource.data.status == 'approved';
       allow create, update, delete: if isAdmin();
+
+      match /reviews/{reviewId} {
+        allow read: if isAdmin() || (
+          resource.data.status == 'approved' &&
+          get(/databases/$(database)/documents/businesses/$(businessId)).data.status == 'approved'
+        );
+
+        allow create: if request.auth != null &&
+          request.auth.uid == reviewId &&
+          !exists(/databases/$(database)/documents/businesses/$(businessId)/reviews/$(reviewId)) &&
+          get(/databases/$(database)/documents/businesses/$(businessId)).data.status == 'approved' &&
+          request.resource.data.keys().hasOnly([
+            'uid', 'businessId', 'businessName', 'reviewerName',
+            'rating', 'comment', 'status', 'createdAt'
+          ]) &&
+          request.resource.data.keys().hasAll([
+            'uid', 'businessId', 'businessName', 'reviewerName',
+            'rating', 'comment', 'status', 'createdAt'
+          ]) &&
+          request.resource.data.uid == request.auth.uid &&
+          request.resource.data.businessId == businessId &&
+          request.resource.data.businessName is string &&
+          request.resource.data.reviewerName is string &&
+          request.resource.data.reviewerName.size() >= 1 &&
+          request.resource.data.reviewerName.size() <= 60 &&
+          request.resource.data.rating is int &&
+          request.resource.data.rating >= 1 &&
+          request.resource.data.rating <= 5 &&
+          request.resource.data.comment is string &&
+          request.resource.data.comment.size() >= 10 &&
+          request.resource.data.comment.size() <= 700 &&
+          request.resource.data.status == 'pending' &&
+          request.resource.data.createdAt is timestamp;
+
+        allow update: if isAdmin() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'reviewedAt', 'reviewedBy'
+          ]) &&
+          request.resource.data.status in ['approved', 'rejected'];
+
+        allow delete: if isAdmin();
+      }
     }
 
     match /sellerSubmissions/{submissionId} {
