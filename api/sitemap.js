@@ -83,7 +83,6 @@ export default async function handler(request, response) {
 
     response.setHeader('Content-Type', 'application/xml; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-    response.setHeader('X-Robots-Tag', 'noindex');
     if (request.method === 'HEAD') return response.status(200).end();
     return response.status(200).send(xml);
   } catch (error) {
