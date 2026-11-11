@@ -13,7 +13,7 @@ export default function ReviewModeration() {
   useEffect(()=>onSnapshot(query(collectionGroup(db,'reviews'),where('status','==','pending')),snap=>{
     setReviews(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0)));
     setLoading(false);
-  },err=>{console.error(err);setError('Could not load pending reviews. Check Firestore Rules and the admin permission.');setLoading(false);}),[]);
+  },err=>{console.error('NaijaShelf pending-review query failed:',err);setError('Could not load pending reviews. Firestore says: '+(err.code||'unknown error')+' — '+(err.message||'No additional details.'));setLoading(false);}),[]);
 
   async function moderate(item,status) {
     const action=status==='approved'?'publish':'reject';
