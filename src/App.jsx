@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, onSnapshot, query as firestoreQuery, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
-import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap, MessageCircle, MapPin } from 'lucide-react';
 
 const categories = ['All businesses', 'Fashion', 'Food & groceries', 'Beauty', 'Home & living', 'Services'];
 const listings = [
@@ -15,6 +15,10 @@ const listings = [
 
 const BUSINESS_WHATSAPP = '2348021289677';
 const waLink = (message) => `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(message)}`;
+const sellerWaLink = (phone, businessName) => {
+  const number = String(phone || '').replace(/\\D/g, '').replace(/^0/, '234');
+  return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Hello ${businessName || 'there'}, I found your business on NaijaShelf and would like to make an enquiry.`)}` : '';
+};
 
 function App() {
   const [active, setActive] = useState('All businesses');
@@ -27,7 +31,7 @@ function App() {
   const [submitError, setSubmitError] = useState('');
   const [published, setPublished] = useState([]);
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
-  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
+  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
   const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
 
   const submit = async (e) => {
@@ -102,7 +106,15 @@ function App() {
         <div className="results-line"><span>{filtered.length} businesses</span><span className="demo-label">Preview listings · Demo content</span></div>
         <div className="business-grid">{filtered.map(item=><article className="business-card" key={item.id}>
           <div className={`card-art ${item.color}`}><span className="card-monogram">{item.initials}</span><span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
-          <div className="card-content"><div className="card-meta"><span>{item.category}</span><span className="meta-dot">·</span><span>{item.location}</span></div><h3>{item.name}</h3><p>{item.description}</p><div className="card-footer"><span className="product-tags">{item.products.join(' · ')}</span><span className="arrow-circle"><ArrowUpRight size={16}/></span></div></div>
+          <div className="card-content">
+            <div className="card-meta"><span>{item.category}</span>{item.location && <><span className="meta-dot">·</span><MapPin size={12}/><span>{item.location}</span></>}</div>
+            <h3>{item.name}</h3>
+            <p>{item.description}</p>
+            {item.products.length > 0 && <div className="product-tags">{item.products.slice(0,3).map((product,i)=><span key={i}>{product}</span>)}</div>}
+            <div className="card-actions">
+              {!item.demo && sellerWaLink(item.whatsapp,item.name) ? <a className="seller-contact" href={sellerWaLink(item.whatsapp,item.name)} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> WhatsApp seller <ArrowUpRight size={14}/></a> : <span className="preview-note">{item.demo ? 'Preview listing' : 'Contact details unavailable'}</span>}
+            </div>
+          </div>
         </article>)}</div>
         {filtered.length===0 && <div className="empty-state"><Search size={25}/><h3>No matches just yet</h3><p>Try another search or category.</p><button className="btn btn-outline" onClick={()=>{setQuery('');setActive('All businesses')}}>Clear filters</button></div>}
         <div className="directory-note"><CircleHelp size={16}/> Sample cards are illustrative previews. Approved seller applications appear here as real business listings.</div>
