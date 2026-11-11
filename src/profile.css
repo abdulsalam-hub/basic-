@@ -1,0 +1,45 @@
+/* NaijaShelf public business profile pages */
+.profile-state{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px;text-align:center;color:#697162;background:#f7f6f0;font-size:13px}
+.profile-state h1{margin:0;color:#29382c;font-size:28px}
+.profile-state p{max-width:380px;line-height:1.7}
+.profile-spinner{width:30px;height:30px;border:3px solid #e2e6d8;border-top-color:#526947;border-radius:50%;animation:profile-spin .8s linear infinite}
+@keyframes profile-spin{to{transform:rotate(360deg)}}
+.business-profile-page{min-height:100vh;background:#f7f6f0;color:#29352b}
+.profile-header{height:76px;max-width:1180px;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.profile-header .brand{font-size:20px}
+.profile-back,.profile-share{display:inline-flex;align-items:center;gap:8px;border:1px solid #e4e4d9;background:#fff;border-radius:8px;padding:10px 13px;color:#53634c;font-size:11px;font-weight:700}
+.profile-cover{max-width:1180px;margin:0 auto;position:relative;padding-bottom:0}
+.profile-cover>img,.profile-cover-art{width:100%;height:270px;object-fit:cover;border-radius:15px;display:grid;place-items:center;background:radial-gradient(circle at 75% 25%,#f3e6ce 0 9%,transparent 9.5%),linear-gradient(120deg,#dce4d0,#eee0d2 55%,#d8dfe0);overflow:hidden}
+.profile-cover-art span{font-family:Manrope,sans-serif;font-size:100px;font-weight:800;letter-spacing:-9px;color:#42513d;opacity:.78}
+.profile-identity{display:flex;align-items:flex-end;gap:20px;padding:0 35px;margin-top:-47px;position:relative}
+.profile-logo{width:112px;height:112px;flex:0 0 112px;border:6px solid #f7f6f0;border-radius:20px;background:#fff;color:#526947;display:grid;place-items:center;font-size:35px;font-weight:800;box-shadow:0 8px 25px #28352812;overflow:hidden}
+.profile-logo img{width:100%;height:100%;object-fit:cover}
+.profile-title{padding:0 0 8px}
+.profile-approved{display:inline-flex;align-items:center;gap:5px;color:#60794d;font-size:9px;font-weight:800;letter-spacing:.1em}
+.profile-title h1{font-family:Manrope,sans-serif;font-size:clamp(25px,4vw,38px);letter-spacing:-1.5px;line-height:1.12;margin:7px 0 5px;overflow-wrap:anywhere}
+.profile-title p{font-size:12px;color:#7d8478;margin:0}
+.profile-layout{max-width:1110px;margin:35px auto 80px;padding:0 28px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr);gap:24px;align-items:start}
+.profile-main-content{display:grid;gap:16px}
+.profile-panel,.profile-contact-card{background:#fff;border:1px solid #eae9df;border-radius:13px;padding:25px}
+.profile-kicker{display:block;color:#8a9875;font-size:9px;font-weight:800;letter-spacing:.13em}
+.profile-panel h2,.profile-contact-card h2{font-family:Manrope,sans-serif;font-size:20px;letter-spacing:-.6px;margin:10px 0}
+.profile-panel p,.profile-contact-card>p{font-size:12px;line-height:1.85;color:#747c70;margin:0}
+.profile-products{display:flex;flex-wrap:wrap;gap:9px}
+.profile-products span{display:inline-flex;align-items:center;gap:7px;border-radius:30px;background:#f1f3eb;color:#59694e;padding:9px 12px;font-size:11px}
+.profile-location{display:flex;align-items:center;gap:9px}
+.profile-location svg{color:#7b9165;flex-shrink:0}
+.profile-contact-card{position:sticky;top:20px}
+.profile-contact-card h2{font-size:22px;line-height:1.25;margin:12px 0 8px}
+.profile-whatsapp{display:flex;align-items:center;justify-content:center;gap:9px;background:#263c2d;color:white;border-radius:8px;padding:14px 12px;margin-top:20px;font-size:12px;font-weight:800}
+.profile-whatsapp svg:last-child{margin-left:auto}
+.profile-secondary-contact,.profile-share-wide{width:100%;display:flex;align-items:center;gap:9px;padding:12px 2px;border:0;border-bottom:1px solid #efeee7;background:transparent;color:#59694e;font-size:11px;font-weight:700;text-align:left}
+.profile-share-wide{border:1px solid #e4e7dc;border-radius:8px;justify-content:center;padding:12px;margin-top:13px}
+.profile-muted{margin-top:15px!important;color:#9a8066!important}
+.profile-trust{display:flex;align-items:flex-start;gap:7px;color:#899080;font-size:10px;line-height:1.6;margin:13px 3px}
+.profile-trust svg{flex-shrink:0;color:#84976c}
+.profile-footer{max-width:1180px;margin:auto;padding:22px 28px 30px;border-top:1px solid #e8e6dc;display:flex;align-items:center;justify-content:space-between;gap:15px;color:#92978b;font-size:10px}
+.profile-footer .brand{font-size:17px}
+.profile-view-link{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:1px solid #e4e8dc;border-radius:8px;background:#f8f9f5;color:#526947;padding:11px 12px;font-size:10px;font-weight:800;margin-bottom:8px}
+@media(max-width:900px){.profile-cover,.profile-header{margin-left:20px;margin-right:20px}.profile-layout{padding:0 20px;grid-template-columns:minmax(0,1.3fr) minmax(250px,.8fr)}}
+@media(max-width:680px){.profile-header{height:65px;padding:0 2px;margin:0 17px}.profile-header .brand{font-size:17px}.profile-back,.profile-share{padding:9px;font-size:0;gap:0}.profile-back svg,.profile-share svg{width:17px;height:17px}.profile-cover{margin:0 14px}.profile-cover>img,.profile-cover-art{height:185px;border-radius:11px}.profile-cover-art span{font-size:70px}.profile-identity{padding:0 12px;gap:12px;margin-top:-35px;align-items:flex-end}.profile-logo{width:78px;height:78px;flex-basis:78px;border-width:4px;border-radius:15px;font-size:25px}.profile-title{padding-bottom:5px;min-width:0}.profile-title h1{font-size:23px;letter-spacing:-.8px}.profile-title p{font-size:10px}.profile-approved{font-size:8px}.profile-layout{display:flex;flex-direction:column-reverse;margin:23px auto 48px;padding:0 15px;gap:15px}.profile-main-content,.profile-sidebar{width:100%}.profile-panel,.profile-contact-card{padding:19px;border-radius:11px}.profile-panel h2{font-size:18px}.profile-contact-card h2{font-size:20px}.profile-contact-card{position:static}.profile-footer{padding:20px 16px;flex-wrap:wrap}.profile-footer>span{width:100%}}
+@media(max-width:360px){.profile-title h1{font-size:20px}.profile-identity{gap:8px}.profile-logo{width:68px;height:68px;flex-basis:68px}}
