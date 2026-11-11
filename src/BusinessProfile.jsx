@@ -132,7 +132,7 @@ export default function BusinessProfile({ id, onBack }) {
     const description = (
       business.description ||
       `Discover ${business.name}, a ${category.toLowerCase()} business in ${location}, Nigeria. Contact the business directly through NaijaShelf.`
-    ).replace(/\\s+/g, ' ').slice(0, 160);
+    ).replace(/\s+/g, ' ').slice(0, 160);
     const pageUrl = `${window.location.origin}/business/${encodeURIComponent(business.id)}`;
     const imageUrl = business.coverImage || business.logoUrl || 'https://naijashelf.vercel.app/';
 
@@ -142,7 +142,7 @@ export default function BusinessProfile({ id, onBack }) {
       const created = !element;
       if (!element) {
         element = document.createElement(createTag);
-        element.setAttribute(createAttribute, selector.match(/content="([^"]+)"/)?.[1] || '');
+        element.setAttribute(createAttribute, selector.match(/(?:name|property)="([^"]+)"/)?.[1] || '');
         document.head.appendChild(element);
       }
       previousMeta.push({ element, attribute, value: element.getAttribute(attribute), created });
