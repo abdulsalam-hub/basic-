@@ -22,6 +22,9 @@ const sellerWaLink = (phone, businessName) => {
 };
 
 function App() {
+const [query, setQuery] = useState('');
+const [selectedLocation, setSelectedLocation] = useState('All locations');
+const [sortBy, setSortBy] = useState('newest');
   const [active, setActive] = useState('All businesses');
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
