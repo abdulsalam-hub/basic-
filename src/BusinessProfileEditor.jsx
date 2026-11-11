@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { BadgeCheck, ImagePlus, Save, Store, UploadCloud } from 'lucide-react';
-import { auth, db, storage } from './firebase.js';
+import { auth, db } from './firebase.js';
 
+const CLOUDINARY_CLOUD_NAME = 'f3sptoih';
+const CLOUDINARY_UPLOAD_PRESET = 'NaijaShelf';
 const blank = { name:'', category:'', location:'', address:'', description:'', whatsapp:'', phone:'', website:'', instagram:'', logoUrl:'', coverImage:'', productsText:'' };
 const clean = value => String(value || '').trim();
 
@@ -42,19 +43,26 @@ export default function BusinessProfileEditor() {
   async function uploadImage(kind,file) {
     if (!selectedId || !file) return;
     setError(''); setMessage('');
-    if (!file.type.startsWith('image/')) { setError('Please choose an image file.'); return; }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setError('Please choose a JPG, PNG or WebP image.'); return; }
     if (file.size > 5*1024*1024) { setError('Image must be 5 MB or smaller.'); return; }
     setUploading(kind);
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'-');
-      const path = 'businesses/'+selectedId+'/'+kind+'-'+Date.now()+'-'+safeName;
-      const result = await uploadBytes(ref(storage,path),file,{contentType:file.type});
-      const url = await getDownloadURL(result.ref);
-      setForm(current=>({...current,[kind==='logo'?'logoUrl':'coverImage']:url}));
-      setMessage((kind==='logo'?'Logo':'Cover image')+' uploaded. Save changes to publish it.');
+      const body = new FormData();
+      body.append('file',file);
+      body.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+      body.append('folder','naijashelf/businesses/'+selectedId);
+      body.append('public_id',kind+'-'+Date.now());
+      const response = await fetch('https://api.cloudinary.com/v1_1/'+CLOUDINARY_CLOUD_NAME+'/image/upload',{method:'POST',body});
+      const result = await response.json();
+      if (!response.ok || !result.secure_url) {
+        console.error('Cloudinary upload error:',result);
+        throw new Error(result?.error?.message || 'Cloudinary rejected the upload. Check the unsigned preset name and settings.');
+      }
+      setForm(current=>({...current,[kind==='logo'?'logoUrl':'coverImage']:result.secure_url}));
+      setMessage((kind==='logo'?'Logo':'Cover image')+' uploaded to Cloudinary. Save changes to publish it.');
     } catch(e) {
       console.error(e);
-      setError(e.code==='storage/unauthorized' ? 'Storage denied this upload. Publish the NaijaShelf Storage Rules and confirm admin access.' : 'Image upload failed. Enable Firebase Storage and check the Storage Rules and bucket configuration.');
+      setError(e.message || 'Image upload failed. Check your internet connection and Cloudinary upload preset.');
     } finally { setUploading(''); }
   }
 
@@ -89,8 +97,8 @@ export default function BusinessProfileEditor() {
     </label>
     {selected && <form className="editor-form" onSubmit={save}>
       <div className="editor-media-grid">
-        <div className="editor-media-card"><div className="editor-image-preview">{form.logoUrl?<img src={form.logoUrl} alt="Business logo preview"/>:<Store size={28}/>}</div><div><b>Business logo</b><small>Square image recommended · max 5 MB</small><label className="editor-upload"><UploadCloud size={14}/>{uploading==='logo'?'Uploading…':'Upload logo'}<input type="file" accept="image/*" disabled={!!uploading} onChange={e=>uploadImage('logo',e.target.files?.[0])}/></label></div></div>
-        <div className="editor-media-card editor-cover-card"><div className="editor-image-preview">{form.coverImage?<img src={form.coverImage} alt="Cover preview"/>:<ImagePlus size={28}/>}</div><div><b>Cover photo</b><small>Wide image recommended · max 5 MB</small><label className="editor-upload"><UploadCloud size={14}/>{uploading==='cover'?'Uploading…':'Upload cover'}<input type="file" accept="image/*" disabled={!!uploading} onChange={e=>uploadImage('cover',e.target.files?.[0])}/></label></div></div>
+        <div className="editor-media-card"><div className="editor-image-preview">{form.logoUrl?<img src={form.logoUrl} alt="Business logo preview"/>:<Store size={28}/>}</div><div><b>Business logo</b><small>Square image recommended · max 5 MB</small><label className="editor-upload"><UploadCloud size={14}/>{uploading==='logo'?'Uploading…':'Upload logo'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={!!uploading} onChange={e=>uploadImage('logo',e.target.files?.[0])}/></label></div></div>
+        <div className="editor-media-card editor-cover-card"><div className="editor-image-preview">{form.coverImage?<img src={form.coverImage} alt="Cover preview"/>:<ImagePlus size={28}/>}</div><div><b>Cover photo</b><small>Wide image recommended · max 5 MB</small><label className="editor-upload"><UploadCloud size={14}/>{uploading==='cover'?'Uploading…':'Upload cover'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={!!uploading} onChange={e=>uploadImage('cover',e.target.files?.[0])}/></label></div></div>
       </div>
       <div className="editor-fields">
         <label>Business name<input required minLength="2" maxLength="100" value={form.name} onChange={change('name')}/></label>
