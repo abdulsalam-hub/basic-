@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
+    // Required for admin collectionGroup(db, 'reviews') queries.
+    // Public reads are still controlled by the business-specific review rule below.
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if isAdmin();
+    }
+
     match /businesses/{businessId} {
       allow read: if resource.data.status == 'approved';
       allow create, update, delete: if isAdmin();
