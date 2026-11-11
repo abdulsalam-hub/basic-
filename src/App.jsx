@@ -39,8 +39,23 @@ const [sortBy, setSortBy] = useState('newest');
   const openProfile = (id) => { window.history.pushState({}, '', '/business/' + encodeURIComponent(id)); setProfileId(id); window.scrollTo({top:0,behavior:'smooth'}); };
   const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
-  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
- 
+  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [],
+createdAt:item.createdAt,
+demo:false })), [published]);
+
+ const locations = useMemo(() => [
+  'All locations',
+  ...new Set(
+    [...liveListings, ...listings]
+      .map(item => item.location?.trim())
+      .filter(Boolean)
+  )
+].sort((a, b) =>
+  a === 'All locations' ? -1 :
+  b === 'All locations' ? 1 :
+  a.localeCompare(b)
+), [liveListings]);
+
 const filtered = useMemo(() => {
   let results = [...liveListings, ...listings].filter(item => {
     const matchesCategory =
@@ -146,7 +161,46 @@ const filtered = useMemo(() => {
       <section className="discover section" id="discover">
         <div className="section-top"><div><div className="eyebrow">A LITTLE CLOSER TO HOME</div><h2>Find your next <em>favourite.</em></h2><p className="section-sub">Explore the people, products and services making things happen.</p></div><a className="text-link" href="#seller">Own a business? Get discovered <ArrowUpRight size={16}/></a></div>
         <div className="category-row">{categories.map(cat=><button key={cat} className={active===cat?'category active':'category'} onClick={()=>setActive(cat)}>{cat}</button>)}</div>
-        <div className="results-line"><span>{filtered.length} businesses</span><span className="demo-label">Preview listings · Demo content</span></div>
+
+<div className="discovery-controls">
+  <select
+    value={selectedLocation}
+    onChange={e => setSelectedLocation(e.target.value)}
+  >
+    {locations.map(location => (
+      <option key={location} value={location}>
+        {location}
+      </option>
+    ))}
+  </select>
+
+  <select
+    value={sortBy}
+    onChange={e => setSortBy(e.target.value)}
+  >
+    <option value="newest">Newest first</option>
+    <option value="alphabetical">Alphabetical (A–Z)</option>
+  </select>
+</div>
+        
+<div className="discovery-results">
+  <span>
+    Showing {filtered.length} {filtered.length === 1 ? 'business' : 'businesses'}
+  </span>
+
+  <button
+    className="clear-filters-btn"
+    onClick={() => {
+      setQuery('');
+      setActive('All businesses');
+      setSelectedLocation('All locations');
+      setSortBy('newest');
+    }}
+  >
+    Clear all filters
+  </button>
+</div>
+
         <div className="business-grid">{filtered.map(item=><article className="business-card" key={item.id}>
           <div className={`card-art ${item.color}`}>{item.logoUrl ? <img className="business-card-logo" src={item.logoUrl} alt={item.name + ' logo'} loading="lazy"/> : <span className="card-monogram">{item.initials}</span>}<span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
           <div className="card-content">
