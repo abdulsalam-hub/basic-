@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, setDoc, serverTimestamp, where } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth } from './firebase.js';
 import './profile.css';
@@ -42,7 +42,6 @@ function CustomerReviews({ business }) {
     try {
       const user = auth.currentUser || (await signInAnonymously(auth)).user;
       const reviewRef = doc(db,'businesses',business.id,'reviews',user.uid);
-      const { setDoc, serverTimestamp } = await import('firebase/firestore');
       await setDoc(reviewRef,{
         uid:user.uid,
         businessId:business.id,
