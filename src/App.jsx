@@ -146,6 +146,7 @@ const filtered = useMemo(() => {
         <div className="hero-art" aria-label="Illustration of a local shop and shopping bag">
           <div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/>
           <div className="art-note note-top"><span className="note-icon"><BadgeCheck size={16}/></span><span><b>Local finds</b><small>Worth discovering</small></span></div>
+
           <div className="shop-illustration">
             <div className="shop-sun"/><div className="shop-roof"><span/><span/><span/><span/><span/></div>
             <div className="shop-body"><div className="shop-sign">YOUR NEXT<br/><b>FAVOURITE</b><br/>IS HERE.</div><div className="shop-window"><div className="window-shelf"/><div className="window-pot"/><div className="window-box"/></div><div className="shop-door"/></div>
@@ -154,6 +155,7 @@ const filtered = useMemo(() => {
           <div className="art-note note-bottom"><span className="bag-icon"><ShoppingBag size={18}/></span><span><b>Shop independent</b><small>Support local makers</small></span></div>
           <span className="art-spark spark-a">✳</span><span className="art-spark spark-b">✦</span>
         </div>
+
       </section>
 
       <section className="trust-strip"><div><ShieldCheck size={17}/><span>Connect directly with sellers</span></div><span className="strip-divider"/><div><Zap size={17}/><span>Simple, mobile-first shopping</span></div><span className="strip-divider"/><div><Compass size={17}/><span>Discover businesses near you</span></div></section>
