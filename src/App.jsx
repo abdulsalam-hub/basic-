@@ -31,8 +31,8 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [published, setPublished] = useState([]);
-  const [profileId, setProfileId] = useState(() => window.location.pathname.match(/^\\/business\\/([^/]+)\\/?$/)?.[1] || '');
-  useEffect(() => { const sync = () => setProfileId(window.location.pathname.match(/^\\/business\\/([^/]+)\\/?$/)?.[1] || ''); window.addEventListener('popstate', sync); return () => window.removeEventListener('popstate', sync); }, []);
+  const [profileId, setProfileId] = useState(() => window.location.pathname.match(/^\/business\/([^/]+)\/?$/)?.[1] || '');
+  useEffect(() => { const sync = () => setProfileId(window.location.pathname.match(/^\/business\/([^/]+)\/?$/)?.[1] || ''); window.addEventListener('popstate', sync); return () => window.removeEventListener('popstate', sync); }, []);
   const openProfile = (id) => { window.history.pushState({}, '', '/business/' + encodeURIComponent(id)); setProfileId(id); window.scrollTo({top:0,behavior:'smooth'}); };
   const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
@@ -119,7 +119,7 @@ function App() {
             <p>{item.description}</p>
             {item.products.length > 0 && <div className="product-tags">{item.products.slice(0,3).map((product,i)=><span key={i}>{product}</span>)}</div>}
             <div className="card-actions">
-              <button className="profile-view-link" onClick={()=>openProfile(item.id)}>View business profile <ArrowUpRight size={15}/></button>
+              {!item.demo && <button className="profile-view-link" onClick={()=>openProfile(item.id)}>View business profile <ArrowUpRight size={15}/></button>}
               {!item.demo && sellerWaLink(item.whatsapp,item.name) ? <a className="seller-contact" href={sellerWaLink(item.whatsapp,item.name)} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> WhatsApp seller</a> : <span className="preview-note">{item.demo ? 'Preview listing' : 'Contact details unavailable'}</span>}
             </div>
           </div>
