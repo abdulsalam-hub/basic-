@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, onSnapshot, query as firestoreQuery, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
+import BusinessProfile from './BusinessProfile.jsx';
 import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap, MessageCircle, MapPin } from 'lucide-react';
 
 const categories = ['All businesses', 'Fashion', 'Food & groceries', 'Beauty', 'Home & living', 'Services'];
@@ -30,6 +31,10 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [published, setPublished] = useState([]);
+  const [profileId, setProfileId] = useState(() => window.location.pathname.match(/^\\/business\\/([^/]+)\\/?$/)?.[1] || '');
+  useEffect(() => { const sync = () => setProfileId(window.location.pathname.match(/^\\/business\\/([^/]+)\\/?$/)?.[1] || ''); window.addEventListener('popstate', sync); return () => window.removeEventListener('popstate', sync); }, []);
+  const openProfile = (id) => { window.history.pushState({}, '', '/business/' + encodeURIComponent(id)); setProfileId(id); window.scrollTo({top:0,behavior:'smooth'}); };
+  const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
   const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
   const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
@@ -59,6 +64,8 @@ function App() {
       setSubmitting(false);
     }
   };
+
+  if (profileId) return <BusinessProfile id={profileId} onBack={goHome}/>;
 
   return <div className="site-shell">
     <div className="announcement"><span className="announce-dot" /> Founding seller programme is open <a href="#pricing">See how it works <ArrowUpRight size={13}/></a></div>
@@ -112,7 +119,8 @@ function App() {
             <p>{item.description}</p>
             {item.products.length > 0 && <div className="product-tags">{item.products.slice(0,3).map((product,i)=><span key={i}>{product}</span>)}</div>}
             <div className="card-actions">
-              {!item.demo && sellerWaLink(item.whatsapp,item.name) ? <a className="seller-contact" href={sellerWaLink(item.whatsapp,item.name)} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> WhatsApp seller <ArrowUpRight size={14}/></a> : <span className="preview-note">{item.demo ? 'Preview listing' : 'Contact details unavailable'}</span>}
+              <button className="profile-view-link" onClick={()=>openProfile(item.id)}>View business profile <ArrowUpRight size={15}/></button>
+              {!item.demo && sellerWaLink(item.whatsapp,item.name) ? <a className="seller-contact" href={sellerWaLink(item.whatsapp,item.name)} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> WhatsApp seller</a> : <span className="preview-note">{item.demo ? 'Preview listing' : 'Contact details unavailable'}</span>}
             </div>
           </div>
         </article>)}</div>
