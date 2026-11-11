@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where, updateDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { BadgeCheck, ImagePlus, Save, Store, UploadCloud } from 'lucide-react';
+import { BadgeCheck, ImagePlus, Save, Store, UploadCloud, ShieldCheck, Clock3 } from 'lucide-react';
 import { auth, db } from './firebase.js';
 
 const CLOUDINARY_CLOUD_NAME = 'f3sptoih';
 const CLOUDINARY_UPLOAD_PRESET = 'NaijaShelf';
-const blank = { name:'', category:'', location:'', address:'', description:'', whatsapp:'', phone:'', website:'', instagram:'', logoUrl:'', coverImage:'', productsText:'' };
+const days = [['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],['thursday','Thursday'],['friday','Friday'],['saturday','Saturday'],['sunday','Sunday']];
+const defaultHours = Object.fromEntries(days.map(([key])=>[key,{open:'09:00',close:'18:00',closed:false}]));
+const blank = { name:'', category:'', location:'', address:'', description:'', whatsapp:'', phone:'', website:'', instagram:'', logoUrl:'', coverImage:'', productsText:'', isVerified:false, hours:defaultHours };
 const clean = value => String(value || '').trim();
 
 export default function BusinessProfileEditor() {
@@ -28,17 +30,21 @@ export default function BusinessProfileEditor() {
   const selected = useMemo(()=>businesses.find(x=>x.id===selectedId),[businesses,selectedId]);
   useEffect(() => {
     if (!selected) { setForm(blank); return; }
+    const savedHours = selected.hours && typeof selected.hours==='object' ? selected.hours : {};
+    const hours = Object.fromEntries(days.map(([key])=>[key,{...defaultHours[key],...(savedHours[key]||{})}]));
     setForm({
       name:selected.name || '', category:selected.category || '', location:selected.location || selected.city || '',
       address:selected.address || '', description:selected.description || '', whatsapp:selected.whatsapp || '',
       phone:selected.phone || '', website:selected.website || '', instagram:selected.instagram || '',
       logoUrl:selected.logoUrl || '', coverImage:selected.coverImage || '',
-      productsText:Array.isArray(selected.products) ? selected.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\n') : ''
+      productsText:Array.isArray(selected.products) ? selected.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\n') : '',
+      isVerified:selected.isVerified===true, hours
     });
     setMessage(''); setError('');
   },[selectedId,selected?.updatedAt]);
 
   const change = key => e => setForm(current=>({...current,[key]:e.target.value}));
+  const updateHour = (day,field,value) => setForm(current=>({...current,hours:{...current.hours,[day]:{...current.hours[day],[field]:value}}}));
 
   async function uploadImage(kind,file) {
     if (!selectedId || !file) return;
@@ -48,28 +54,25 @@ export default function BusinessProfileEditor() {
     setUploading(kind);
     try {
       const body = new FormData();
-      body.append('file',file);
-      body.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
-      body.append('folder','naijashelf/businesses/'+selectedId);
-      body.append('public_id',kind+'-'+Date.now());
+      body.append('file',file); body.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+      body.append('folder','naijashelf/businesses/'+selectedId); body.append('public_id',kind+'-'+Date.now());
       const response = await fetch('https://api.cloudinary.com/v1_1/'+CLOUDINARY_CLOUD_NAME+'/image/upload',{method:'POST',body});
       const result = await response.json();
-      if (!response.ok || !result.secure_url) {
-        console.error('Cloudinary upload error:',result);
-        throw new Error(result?.error?.message || 'Cloudinary rejected the upload. Check the unsigned preset name and settings.');
-      }
+      if (!response.ok || !result.secure_url) throw new Error(result?.error?.message || 'Cloudinary rejected the upload. Check the unsigned preset settings.');
       setForm(current=>({...current,[kind==='logo'?'logoUrl':'coverImage']:result.secure_url}));
-      setMessage((kind==='logo'?'Logo':'Cover image')+' uploaded to Cloudinary. Save changes to publish it.');
-    } catch(e) {
-      console.error(e);
-      setError(e.message || 'Image upload failed. Check your internet connection and Cloudinary upload preset.');
-    } finally { setUploading(''); }
+      setMessage((kind==='logo'?'Logo':'Cover image')+' uploaded. Save changes to publish it.');
+    } catch(e) { console.error(e); setError(e.message || 'Image upload failed.'); }
+    finally { setUploading(''); }
   }
 
   async function save(e) {
     e.preventDefault();
     if (!selectedId) return;
     if (clean(form.name).length < 2) { setError('Business name must contain at least 2 characters.'); return; }
+    for (const [key,label] of days) {
+      const day=form.hours[key];
+      if (!day.closed && (!day.open || !day.close || day.open>=day.close)) { setError(label+' opening time must be earlier than closing time.'); return; }
+    }
     setSaving(true); setError(''); setMessage('');
     try {
       const businessRef = doc(db,'businesses',selectedId);
@@ -79,20 +82,19 @@ export default function BusinessProfileEditor() {
         phone:clean(form.phone), website:clean(form.website), instagram:clean(form.instagram),
         logoUrl:clean(form.logoUrl), coverImage:clean(form.coverImage),
         products:form.productsText.split('\n').map(clean).filter(Boolean).slice(0,30),
+        isVerified:form.isVerified===true, hours:form.hours,
         updatedAt:serverTimestamp(), updatedBy:auth.currentUser?.uid || ''
       });
       const saved = await getDoc(businessRef);
       const savedData = saved.exists() ? saved.data() : null;
-      if (!savedData || clean(savedData.logoUrl) !== clean(form.logoUrl) || clean(savedData.coverImage) !== clean(form.coverImage)) {
-        throw new Error('Firestore did not confirm the latest image URLs. Please try saving again.');
+      if (!savedData || clean(savedData.logoUrl)!==clean(form.logoUrl) || clean(savedData.coverImage)!==clean(form.coverImage) || savedData.isVerified!==form.isVerified) {
+        throw new Error('Firestore did not confirm all saved changes. Please try again.');
       }
-      setMessage('Saved successfully! Your business details and images are now stored. Refresh the public directory to see the latest logo.');
+      setMessage('Saved successfully! Business details, verification status, opening hours and images are now stored.');
     } catch(e) {
       console.error(e);
-      const code = e?.code || '';
-      const detail = e?.message || 'Unknown error';
-      setError(code === 'permission-denied' ? 'Save blocked by Firestore security rules (permission-denied). The businesses update rule must allow this admin to edit approved listings.' : code === 'not-found' ? 'This business record could not be found. Refresh the editor and select it again.' : 'Save failed' + (code ? ' (' + code + ')' : '') + ': ' + detail);
-      console.error('Business profile save failed:', { code, detail: e });
+      const code=e?.code||'', detail=e?.message||'Unknown error';
+      setError(code==='permission-denied'?'Save blocked by Firestore security rules. Confirm this account still has administrator permission.':code==='not-found'?'This business record could not be found. Refresh and select it again.':'Save failed'+(code?' ('+code+')':'')+': '+detail);
     } finally { setSaving(false); }
   }
 
@@ -121,6 +123,18 @@ export default function BusinessProfileEditor() {
         <label>Website<input value={form.website} onChange={change('website')} placeholder="https://example.com"/></label>
         <label>Instagram username / link<input value={form.instagram} onChange={change('instagram')} placeholder="@yourbusiness"/></label>
       </div>
+      <section className="editor-verification">
+        <div><ShieldCheck size={19}/><span><b>Verified business status</b><small>Only administrators can grant or remove this badge. Verify the business details before switching it on.</small></span></div>
+        <label className="editor-toggle"><input type="checkbox" checked={form.isVerified} onChange={e=>setForm(current=>({...current,isVerified:e.target.checked}))}/><span>{form.isVerified?'Verified':'Not verified'}</span></label>
+      </section>
+      <section className="editor-hours">
+        <div className="editor-section-title"><Clock3 size={18}/><span><b>Opening hours</b><small>Set the hours customers should see on the public profile.</small></span></div>
+        <div className="editor-hours-grid">{days.map(([key,label])=><div className="editor-hour-row" key={key}>
+          <b>{label}</b><label className="editor-time"><span>Opens</span><input type="time" disabled={form.hours[key].closed} value={form.hours[key].open} onChange={e=>updateHour(key,'open',e.target.value)}/></label>
+          <label className="editor-time"><span>Closes</span><input type="time" disabled={form.hours[key].closed} value={form.hours[key].close} onChange={e=>updateHour(key,'close',e.target.value)}/></label>
+          <label className="editor-closed"><input type="checkbox" checked={form.hours[key].closed} onChange={e=>updateHour(key,'closed',e.target.checked)}/> Closed</label>
+        </div>)}</div>
+      </section>
       {error && <div className="admin-alert" role="alert">{error}</div>}
       {message && <div className="editor-success" role="status">{message}</div>}
       <div className="editor-save-row"><span>Changes update the existing approved listing.</span><button className="approve-action" disabled={saving || !!uploading}><Save size={15}/>{saving?'Saving…':'Save profile changes'}</button></div>
