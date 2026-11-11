@@ -170,14 +170,14 @@ const filtered = useMemo(() => {
     <div className="announcement"><span className="announce-dot" /> Founding seller programme is open <a href="#pricing">See how it works <ArrowUpRight size={13}/></a></div>
     <header className="header">
       <a className="brand" href="#" aria-label="NaijaShelf home"><span className="brand-mark"><Store size={19}/></span><span>naija<span className="brand-light">shelf</span><i>.</i></span></a>
-      <nav className={menuOpen ? 'nav nav-open' : 'nav'}>
+      <nav id="primary-navigation" aria-label="Main navigation" className={menuOpen ? 'nav nav-open' : 'nav'}>
         <a href="#discover" onClick={()=>setMenuOpen(false)}>Explore businesses</a>
         <a href="#how" onClick={()=>setMenuOpen(false)}>How it works</a>
         <a href="#pricing" onClick={()=>setMenuOpen(false)}>For sellers</a>
         <a href="#faq" onClick={()=>setMenuOpen(false)}>FAQs</a>
       </nav>
       <div className="header-actions"><a className="login-link" href="#pricing">For business owners</a><button className="btn btn-dark btn-small" onClick={()=>setModal(true)}>List your business <ArrowUpRight size={15}/></button></div>
-      <button className="mobile-menu" aria-label="Toggle menu" onClick={()=>setMenuOpen(!menuOpen)}>{menuOpen ? <X/> : <Menu/>}</button>
+      <button className="mobile-menu" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-controls="primary-navigation" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}>{menuOpen ? <X/> : <Menu/>}</button>
     </header>
 
     <main>
@@ -271,7 +271,7 @@ const filtered = useMemo(() => {
 </div>
 
         <div className="business-grid">{filtered.map(item=><article className="business-card" key={item.id}>
-          <div className={`card-art ${item.color}`}>{item.logoUrl ? <img className="business-card-logo" src={item.logoUrl} alt={item.name + ' logo'} loading="lazy"/> : <span className="card-monogram">{item.initials}</span>}<span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
+          <div className={`card-art ${item.color}`}>{item.logoUrl ? <img className="business-card-logo" src={item.logoUrl} alt={item.name + ' logo'} loading="lazy" decoding="async"/> : <span className="card-monogram">{item.initials}</span>}<span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
           <div className="card-content">
             <div className="card-meta"><span>{item.category}</span>{item.location && <><span className="meta-dot">·</span><MapPin size={12}/><span>{item.location}</span></>}{item.isVerified && <span className="verified-chip"><BadgeCheck size={12}/> Verified</span>}</div>
             <h3>{item.name}</h3>
