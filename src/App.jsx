@@ -34,11 +34,41 @@ const [sortBy, setSortBy] = useState('newest');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [published, setPublished] = useState([]);
+  const [directoryLoading, setDirectoryLoading] = useState(true);
+  const [directoryError, setDirectoryError] = useState('');
+  const [directoryRetry, setDirectoryRetry] = useState(0);
   const [profileId, setProfileId] = useState(() => window.location.pathname.match(/^\/business\/([^/]+)\/?$/)?.[1] || '');
   useEffect(() => { const sync = () => setProfileId(window.location.pathname.match(/^\/business\/([^/]+)\/?$/)?.[1] || ''); window.addEventListener('popstate', sync); return () => window.removeEventListener('popstate', sync); }, []);
   const openProfile = (id) => { window.history.pushState({}, '', '/business/' + encodeURIComponent(id)); setProfileId(id); window.scrollTo({top:0,behavior:'smooth'}); };
   const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
-  useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
+  useEffect(() => {
+    setDirectoryLoading(true);
+    setDirectoryError('');
+
+    const unsubscribe = onSnapshot(
+      firestoreQuery(
+        collection(db, 'businesses'),
+        where('status', '==', 'approved')
+      ),
+      snapshot => {
+        setPublished(snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })));
+        setDirectoryError('');
+        setDirectoryLoading(false);
+      },
+      error => {
+        console.error('Directory load failed:', error);
+        setDirectoryError(
+          'We could not load live business listings. Please check your connection and try again.'
+        );
+        setDirectoryLoading(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [directoryRetry]);
   const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [],
 createdAt:item.createdAt,
 demo:false })), [published]);
@@ -185,9 +215,28 @@ const filtered = useMemo(() => {
   </select>
 </div>
         
-<div className="discovery-results">
+{directoryLoading && (
+  <p className="directory-status" role="status" aria-live="polite">
+    Loading approved business listings…
+  </p>
+)}
+
+{directoryError && (
+  <div className="directory-error" role="alert">
+    <span>{directoryError}</span>
+    <button
+      type="button"
+      onClick={() => setDirectoryRetry(value => value + 1)}
+    >
+      Try again
+    </button>
+  </div>
+)}
+
+<div className="discovery-results" aria-live="polite">
   <span>
     Showing {filtered.length} {filtered.length === 1 ? 'business' : 'businesses'}
+    {!directoryLoading && ` · ${published.length} approved listings`}
   </span>
 
   <button
@@ -216,7 +265,7 @@ const filtered = useMemo(() => {
             </div>
           </div>
         </article>)}</div>
-        {filtered.length===0 && <div className="empty-state"><Search size={25}/><h3>No matches just yet</h3><p>Try another search or category.</p><button className="btn btn-outline" onClick={()=>{setQuery('');setActive('All businesses')}}>Clear filters</button></div>}
+        {filtered.length===0 && !directoryLoading && !directoryError && <div className="empty-state"><Search size={25}/><h3>No matches just yet</h3><p>Try another search or category.</p><button className="btn btn-outline" onClick={()=>{setQuery('');setActive('All businesses');setSelectedLocation('All locations');setSortBy('newest')}}>Clear filters</button></div>}
         <div className="directory-note"><CircleHelp size={16}/> Sample cards are illustrative previews. Approved seller applications appear here as real business listings.</div>
       </section>
 
