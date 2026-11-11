@@ -234,9 +234,9 @@ export default function BusinessProfile({ id, onBack }) {
       <button className="profile-share" onClick={shareProfile}><Share2 size={16}/> Share</button>
     </header>
     <section className="profile-cover">
-      {business.coverImage ? <img src={business.coverImage} alt={business.name + ' cover'}/> : <div className="profile-cover-art"><span>{(business.name || 'NS').slice(0,2).toUpperCase()}</span></div>}
+      {business.coverImage ? <img src={business.coverImage} alt={business.name + ' cover'} decoding="async"/> : <div className="profile-cover-art"><span>{(business.name || 'NS').slice(0,2).toUpperCase()}</span></div>}
       <div className="profile-identity">
-        <div className="profile-logo">{business.logoUrl ? <img src={business.logoUrl} alt={business.name + ' logo'}/> : (business.name || 'NS').slice(0,2).toUpperCase()}</div>
+        <div className="profile-logo">{business.logoUrl ? <img src={business.logoUrl} alt={business.name + ' logo'} decoding="async"/> : (business.name || 'NS').slice(0,2).toUpperCase()}</div>
         <div className="profile-title">
           <div className="profile-badges"><span className="profile-approved"><BadgeCheck size={13}/> APPROVED LISTING</span>{business.isVerified === true && <span className="profile-verified"><ShieldCheck size={13}/> VERIFIED BUSINESS</span>}</div>
           <h1>{business.name}</h1><p>{business.category || 'Local business'}{(business.location || business.city) ? ' · ' + (business.location || business.city) : ''}</p>
