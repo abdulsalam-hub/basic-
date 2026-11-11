@@ -126,43 +126,88 @@ export default function BusinessProfile({ id, onBack }) {
     if (!business) return;
 
     const previousTitle = document.title;
-
     const location = business.location || business.city || 'Nigeria';
-    const category = business.category || 'Business';
+    const category = business.category || 'Local business';
+    const title = `${business.name} | ${category} in ${location} | NaijaShelf`;
+    const description = (
+      business.description ||
+      `Discover ${business.name}, a ${category.toLowerCase()} business in ${location}, Nigeria. Contact the business directly through NaijaShelf.`
+    ).replace(/\\s+/g, ' ').slice(0, 160);
+    const pageUrl = `${window.location.origin}/business/${encodeURIComponent(business.id)}`;
+    const imageUrl = business.coverImage || business.logoUrl || 'https://naijashelf.vercel.app/';
 
-    document.title =
-      `${business.name} | ${category} in ${location} | NaijaShelf`;
+    const previousMeta = [];
+    const setMeta = (selector, attribute, value, createTag = 'meta', createAttribute = 'name') => {
+      let element = document.head.querySelector(selector);
+      const created = !element;
+      if (!element) {
+        element = document.createElement(createTag);
+        element.setAttribute(createAttribute, selector.match(/content="([^"]+)"/)?.[1] || '');
+        document.head.appendChild(element);
+      }
+      previousMeta.push({ element, attribute, value: element.getAttribute(attribute), created });
+      element.setAttribute(attribute, value);
+    };
 
-    const existingMeta = document.querySelector(
-      'meta[name="description"]'
-    );
+    setMeta('meta[name="description"]', 'content', description);
+    setMeta('meta[property="og:type"]', 'content', 'business.business', 'meta', 'property');
+    setMeta('meta[property="og:title"]', 'content', title, 'meta', 'property');
+    setMeta('meta[property="og:description"]', 'content', description, 'meta', 'property');
+    setMeta('meta[property="og:url"]', 'content', pageUrl, 'meta', 'property');
+    setMeta('meta[property="og:image"]', 'content', imageUrl, 'meta', 'property');
+    setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image');
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    setMeta('meta[name="twitter:description"]', 'content', description);
+    setMeta('meta[name="twitter:image"]', 'content', imageUrl);
 
-    const previousDescription = existingMeta?.getAttribute('content');
-
-    const description =
-      `${business.name} is a ${category} business in ${location}. ${business.description || 'Discover this business on NaijaShelf.'}`;
-
-    let metaDescription = document.querySelector(
-      'meta[name="description"]'
-    );
-
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.name = 'description';
-      document.head.appendChild(metaDescription);
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    const canonicalCreated = !canonical;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
     }
+    const previousCanonical = canonical.getAttribute('href');
+    canonical.href = pageUrl;
 
-    metaDescription.setAttribute('content', description.slice(0, 160));
+    const structuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: business.name,
+      description,
+      url: pageUrl,
+      image: imageUrl,
+      telephone: business.phone || business.whatsapp || undefined,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: business.address || undefined,
+        addressLocality: location,
+        addressCountry: 'NG'
+      },
+      areaServed: { '@type': 'Country', name: 'Nigeria' },
+      sameAs: [
+        business.website,
+        business.instagram
+      ].filter(Boolean)
+    };
+    const jsonLd = document.createElement('script');
+    jsonLd.type = 'application/ld+json';
+    jsonLd.id = 'naijashelf-business-jsonld';
+    jsonLd.textContent = JSON.stringify(structuredData);
+    document.head.appendChild(jsonLd);
 
     return () => {
-  document.title = previousTitle;
-
-  if (previousDescription !== null && previousDescription !== undefined) {
-    metaDescription.setAttribute('content', previousDescription);
-  } else {
-    metaDescription.remove();
-  }
-};
+      document.title = previousTitle;
+      previousMeta.forEach(({ element, attribute, value, created }) => {
+        if (created) element.remove();
+        else if (value === null) element.removeAttribute(attribute);
+        else element.setAttribute(attribute, value);
+      });
+      if (canonicalCreated) canonical.remove();
+      else if (previousCanonical === null) canonical.removeAttribute('href');
+      else canonical.setAttribute('href', previousCanonical);
+      jsonLd.remove();
+    };
   }, [business]);
 
   if (loading) return <main className="profile-state"><div className="profile-spinner"/>Loading business profile…</main>;
