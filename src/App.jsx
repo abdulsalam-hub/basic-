@@ -26,7 +26,7 @@ const [query, setQuery] = useState('');
 const [selectedLocation, setSelectedLocation] = useState('All locations');
 const [sortBy, setSortBy] = useState('newest');
   const [active, setActive] = useState('All businesses');
-  const [query, setQuery] = useState('');
+ 
   const [menuOpen, setMenuOpen] = useState(false);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({business:'', owner:'', category:'Fashion', city:'', phone:''});
