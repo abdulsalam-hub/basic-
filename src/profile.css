@@ -43,3 +43,37 @@
 @media(max-width:900px){.profile-cover,.profile-header{margin-left:20px;margin-right:20px}.profile-layout{padding:0 20px;grid-template-columns:minmax(0,1.3fr) minmax(250px,.8fr)}}
 @media(max-width:680px){.profile-header{height:65px;padding:0 2px;margin:0 17px}.profile-header .brand{font-size:17px}.profile-back,.profile-share{padding:9px;font-size:0;gap:0}.profile-back svg,.profile-share svg{width:17px;height:17px}.profile-cover{margin:0 14px}.profile-cover>img,.profile-cover-art{height:185px;border-radius:11px}.profile-cover-art span{font-size:70px}.profile-identity{padding:0 12px;gap:12px;margin-top:-35px;align-items:flex-end}.profile-logo{width:78px;height:78px;flex-basis:78px;border-width:4px;border-radius:15px;font-size:25px}.profile-title{padding-bottom:5px;min-width:0}.profile-title h1{font-size:23px;letter-spacing:-.8px}.profile-title p{font-size:10px}.profile-approved{font-size:8px}.profile-layout{display:flex;flex-direction:column-reverse;margin:23px auto 48px;padding:0 15px;gap:15px}.profile-main-content,.profile-sidebar{width:100%}.profile-panel,.profile-contact-card{padding:19px;border-radius:11px}.profile-panel h2{font-size:18px}.profile-contact-card h2{font-size:20px}.profile-contact-card{position:static}.profile-footer{padding:20px 16px;flex-wrap:wrap}.profile-footer>span{width:100%}}
 @media(max-width:360px){.profile-title h1{font-size:20px}.profile-identity{gap:8px}.profile-logo{width:68px;height:68px;flex-basis:68px}}
+
+/* Trust, opening hours and customer reviews */
+.profile-badges{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.profile-verified,.verified-chip{display:inline-flex;align-items:center;gap:5px;color:#2d6848;background:#e8f4eb;border:1px solid #d4ead9;border-radius:30px;padding:5px 8px;font-size:9px;font-weight:800;letter-spacing:.04em}
+.verified-chip{font-size:8px;padding:3px 7px;white-space:nowrap}
+.profile-panel h2:has(svg){display:flex;align-items:center;gap:8px}
+.business-hours-list{display:grid;gap:0}
+.business-hours-row{display:flex;justify-content:space-between;gap:15px;padding:10px 0;border-bottom:1px solid #f0f0e9;font-size:11px}
+.business-hours-row:last-child{border-bottom:0}
+.business-hours-row b{color:#465442}
+.business-hours-row span{color:#778171;text-align:right}
+.review-summary{display:flex;align-items:center;gap:14px;background:#f7f8f3;border-radius:10px;padding:15px;margin:15px 0}
+.review-summary>strong{font:800 34px Manrope,sans-serif;color:#344b35}
+.review-summary>div{display:grid;gap:5px}
+.review-summary>div>span,.review-item small{font-size:9px;color:#8b9285}
+.review-stars{display:inline-flex;align-items:center;gap:2px;color:#d49a36}
+.review-empty{font-size:11px;color:#8b9285;padding:8px 0}
+.review-list{display:grid;gap:12px;margin:12px 0 20px}
+.review-item{border-bottom:1px solid #efefe8;padding:0 0 12px}
+.review-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.review-item-top b{font-size:11px;color:#465442}
+.review-item p{margin:8px 0!important}
+.review-form{border-top:1px solid #eceee5;padding-top:18px;margin-top:18px;display:grid;gap:11px}
+.review-form h3{font:700 15px Manrope,sans-serif;margin:0 0 3px}
+.review-form label{display:grid;gap:6px;color:#5b6656;font-size:10px;font-weight:700}
+.review-form input,.review-form select,.review-form textarea{width:100%;border:1px solid #e1e4d9;border-radius:7px;padding:11px;background:white;color:#30382e;font:11px 'DM Sans',sans-serif;outline:none}
+.review-form input:focus,.review-form select:focus,.review-form textarea:focus{border-color:#84966d;box-shadow:0 0 0 3px #84966d1a}
+.review-submit{border:0;border-radius:7px;background:#2f4b34;color:white;padding:12px;font-size:11px;font-weight:800}
+.review-submit:disabled{opacity:.55}
+.review-moderation-note{font-size:9px;color:#969b90;line-height:1.6}
+.review-error,.review-success{font-size:10px;padding:10px;border-radius:6px;margin:0!important}
+.review-error{background:#fff0ed;color:#9a4e43}
+.review-success{background:#edf4e8;color:#4f7044}
+@media(max-width:680px){.business-hours-row{font-size:10px}.profile-badges{gap:6px}.profile-verified{font-size:7px}}
