@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase.js';
+import './profile.css';
 import { ArrowLeft, ArrowUpRight, BadgeCheck, Globe, Instagram, MapPin, MessageCircle, Phone, Share2, ShieldCheck, ShoppingBag, Store } from 'lucide-react';
 
 export default function BusinessProfile({ id, onBack }) {
