@@ -22,43 +22,7 @@ const sellerWaLink = (phone, businessName) => {
 };
 
 function App() {
-  useEffect(() => {
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "NaijaShelf",
-      "url": "https://naijashelf.vercel.app/",
-      "description": "Discover trusted Nigerian businesses, products, and services.",
-      "inLanguage": "en-NG",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://naijashelf.vercel.app/?search={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      }
-    };
-
-    let script = document.querySelector(
-      'script[data-naijashelf-schema]'
-    );
-
-    if (!script) {
-      script = document.createElement('script');
-      script.type = 'application/ld+json';
-      script.setAttribute('data-naijashelf-schema', 'true');
-      document.head.appendChild(script);
-    }
-
-    script.textContent = JSON.stringify(schema);
-
-    return () => {
-      script.remove();
-    };
-  }, []);
-
-const [query, setQuery] = useState('');
+const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('query') || '');
 const [selectedLocation, setSelectedLocation] = useState('All locations');
 const [sortBy, setSortBy] = useState('newest');
   const [active, setActive] = useState('All businesses');
