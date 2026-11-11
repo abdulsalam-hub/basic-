@@ -16,7 +16,7 @@ const listings = [
 const BUSINESS_WHATSAPP = '2348021289677';
 const waLink = (message) => `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(message)}`;
 const sellerWaLink = (phone, businessName) => {
-  const number = String(phone || '').replace(/\\D/g, '').replace(/^0/, '234');
+  const number = String(phone || '').replace(/\D/g, '').replace(/^0/, '234');
   return number ? `https://wa.me/${number}?text=${encodeURIComponent(`Hello ${businessName || 'there'}, I found your business on NaijaShelf and would like to make an enquiry.`)}` : '';
 };
 
