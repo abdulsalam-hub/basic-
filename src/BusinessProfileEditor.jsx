@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, query, where, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, updateDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { BadgeCheck, ImagePlus, Save, Store, UploadCloud } from 'lucide-react';
 import { auth, db } from './firebase.js';
 
@@ -72,7 +72,8 @@ export default function BusinessProfileEditor() {
     if (clean(form.name).length < 2) { setError('Business name must contain at least 2 characters.'); return; }
     setSaving(true); setError(''); setMessage('');
     try {
-      await updateDoc(doc(db,'businesses',selectedId),{
+      const businessRef = doc(db,'businesses',selectedId);
+      await updateDoc(businessRef,{
         name:clean(form.name), category:clean(form.category), location:clean(form.location), city:clean(form.location),
         address:clean(form.address), description:clean(form.description), whatsapp:clean(form.whatsapp),
         phone:clean(form.phone), website:clean(form.website), instagram:clean(form.instagram),
@@ -80,10 +81,18 @@ export default function BusinessProfileEditor() {
         products:form.productsText.split('\n').map(clean).filter(Boolean).slice(0,30),
         updatedAt:serverTimestamp(), updatedBy:auth.currentUser?.uid || ''
       });
-      setMessage('Business profile saved. The public profile will show the updated details.');
+      const saved = await getDoc(businessRef);
+      const savedData = saved.exists() ? saved.data() : null;
+      if (!savedData || clean(savedData.logoUrl) !== clean(form.logoUrl) || clean(savedData.coverImage) !== clean(form.coverImage)) {
+        throw new Error('Firestore did not confirm the latest image URLs. Please try saving again.');
+      }
+      setMessage('Saved successfully! Your business details and images are now stored. Refresh the public directory to see the latest logo.');
     } catch(e) {
       console.error(e);
-      setError('Could not save changes. Confirm the admin claim and publish the latest Firestore Rules.');
+      const code = e?.code || '';
+      const detail = e?.message || 'Unknown error';
+      setError(code === 'permission-denied' ? 'Save blocked by Firestore security rules (permission-denied). The businesses update rule must allow this admin to edit approved listings.' : code === 'not-found' ? 'This business record could not be found. Refresh the editor and select it again.' : 'Save failed' + (code ? ' (' + code + ')' : '') + ': ' + detail);
+      console.error('Business profile save failed:', { code, detail: e });
     } finally { setSaving(false); }
   }
 
