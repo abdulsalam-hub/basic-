@@ -122,20 +122,38 @@ const filtered = useMemo(() => {
 
   const submit = async (e) => {
     e.preventDefault();
+    const businessName = form.business.trim();
+    const ownerName = form.owner.trim();
+    const city = form.city.trim();
+    const phoneDigits = form.phone.replace(/\\D/g, '');
+
+    if (businessName.length < 2 || ownerName.length < 2 || city.length < 2) {
+      setSubmitError('Please enter a valid business name, your name and city (at least 2 characters each).');
+      return;
+    }
+    if (businessName.length > 100 || ownerName.length > 100 || city.length > 80) {
+      setSubmitError('One or more fields are too long. Please shorten your details and try again.');
+      return;
+    }
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      setSubmitError('Enter a valid WhatsApp number with 10 to 15 digits, including the country code when needed.');
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError('');
     try {
       await addDoc(collection(db, 'sellerSubmissions'), {
-        businessName: form.business.trim(),
-        ownerName: form.owner.trim(),
+        businessName,
+        ownerName,
         category: form.category,
-        city: form.city.trim(),
+        city,
         whatsapp: form.phone.trim(),
         status: 'pending',
         source: 'website',
         createdAt: serverTimestamp()
       });
-      const message = `Hello NaijaShelf! I've submitted my listing request. Business: ${form.business}. Owner: ${form.owner}. Category: ${form.category}. City: ${form.city}. WhatsApp: ${form.phone}. Please share the next steps and pricing.`;
+      const message = `Hello NaijaShelf! I've submitted my listing request. Business: ${businessName}. Owner: ${ownerName}. Category: ${form.category}. City: ${city}. WhatsApp: ${form.phone.trim()}. Please share the next steps and pricing.`;
       window.open(waLink(message), '_blank', 'noopener,noreferrer');
       setSent(true);
     } catch (error) {
@@ -285,7 +303,7 @@ const filtered = useMemo(() => {
     </main>
     <footer className="footer"><a className="brand footer-brand" href="#"><span className="brand-mark"><Store size={17}/></span><span>naija<span className="brand-light">shelf</span><i>.</i></span></a><span className="footer-copy">A little more local, a lot more connected.</span><div className="footer-links"><a href="#discover">Explore</a><a href="#pricing">For sellers</a><a href="#faq">FAQs</a></div><span className="copyright">© {new Date().getFullYear()} NaijaShelf</span></footer>
 
-    {modal && <div className="modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(false)}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button className="modal-close" onClick={()=>{setModal(false);setSent(false)}} aria-label="Close"><X/></button><div className="eyebrow">LET'S GET YOU SEEN</div><h2 id="modal-title">Put your business<br/><em>on the shelf.</em></h2><p className="modal-intro">Tell us a little about your business. We'll open WhatsApp with your details so you can send your listing request.</p><form onSubmit={submit}><label>Business name<input required value={form.business} onChange={e=>setForm({...form,business:e.target.value})} placeholder="e.g. Ada's Kitchen"/></label><label>Your name<input required value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Your full name"/></label><div className="form-row"><label>Business category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select></label><label>City<input required value={form.city} onChange={e=>setForm({...form,city:e.target.value})} placeholder="e.g. Lagos"/></label></div><label>Business WhatsApp number<input required value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+234..."/></label>{submitError && <p className="form-error" role="alert">{submitError}</p>}<button className="btn btn-dark full submit-btn" type="submit" disabled={submitting}>{submitting ? 'Saving your request…' : 'Save request & continue to WhatsApp'} <ArrowUpRight size={17}/></button><small className="privacy-note">Your details are used only to respond to your listing request. By continuing, you choose to send this message through WhatsApp.</small></form></div></div>}
+    {modal && <div className="modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(false)}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button className="modal-close" onClick={()=>{setModal(false);setSent(false)}} aria-label="Close"><X/></button><div className="eyebrow">LET'S GET YOU SEEN</div><h2 id="modal-title">Put your business<br/><em>on the shelf.</em></h2><p className="modal-intro">Tell us a little about your business. We'll open WhatsApp with your details so you can send your listing request.</p><form onSubmit={submit}><label>Business name<input required minLength="2" maxLength="100" value={form.business} onChange={e=>setForm({...form,business:e.target.value})} placeholder="e.g. Ada's Kitchen"/></label><label>Your name<input required minLength="2" maxLength="100" value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Your full name"/></label><div className="form-row"><label>Business category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(c=><option key={c}>{c}</option>)}</select></label><label>City<input required minLength="2" maxLength="80" value={form.city} onChange={e=>setForm({...form,city:e.target.value})} placeholder="e.g. Lagos"/></label></div><label>Business WhatsApp number<input required maxLength="20" inputMode="tel" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+234..."/></label>{submitError && <p className="form-error" role="alert">{submitError}</p>}<button className="btn btn-dark full submit-btn" type="submit" disabled={submitting}>{submitting ? 'Saving your request…' : 'Save request & continue to WhatsApp'} <ArrowUpRight size={17}/></button><small className="privacy-note">Your details are used only to respond to your listing request. By continuing, you choose to send this message through WhatsApp.</small></form></div></div>}
   </div>
 }
 export default App;
