@@ -125,7 +125,7 @@ const filtered = useMemo(() => {
     const businessName = form.business.trim();
     const ownerName = form.owner.trim();
     const city = form.city.trim();
-    const phoneDigits = form.phone.replace(/\\D/g, '');
+    const phoneDigits = form.phone.replace(/\D/g, '');
 
     if (businessName.length < 2 || ownerName.length < 2 || city.length < 2) {
       setSubmitError('Please enter a valid business name, your name and city (at least 2 characters each).');
