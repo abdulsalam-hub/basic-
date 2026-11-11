@@ -38,6 +38,22 @@ function CustomerReviews({ business }) {
 
   async function submitReview(e) {
     e.preventDefault();
+    const reviewerName = name.trim();
+    const reviewComment = comment.trim();
+
+    if (reviewerName.length < 2 || reviewerName.length > 60) {
+      setError('Please enter a name between 2 and 60 characters.');
+      return;
+    }
+    if (reviewComment.length < 10 || reviewComment.length > 700) {
+      setError('Your review must be between 10 and 700 characters after removing extra spaces.');
+      return;
+    }
+    if (!/[a-z0-9]/i.test(reviewComment)) {
+      setError('Please write a meaningful review before submitting.');
+      return;
+    }
+
     setSending(true); setError(''); setMessage('');
     try {
       const user = auth.currentUser || (await signInAnonymously(auth)).user;
@@ -46,9 +62,9 @@ function CustomerReviews({ business }) {
         uid:user.uid,
         businessId:business.id,
         businessName:business.name,
-        reviewerName:name.trim(),
+        reviewerName,
         rating:Number(rating),
-        comment:comment.trim(),
+        comment:reviewComment,
         status:'pending',
         createdAt:serverTimestamp()
       });
@@ -76,7 +92,7 @@ function CustomerReviews({ business }) {
     </div>)}</div> : <p className="review-empty">No published reviews yet. Be the first to share your experience.</p>}
     <form className="review-form" onSubmit={submitReview}>
       <h3>Share your experience</h3>
-      <label>Your name<input required maxLength="60" value={name} onChange={e=>setName(e.target.value)} placeholder="Enter your name"/></label>
+      <label>Your name<input required minLength="2" maxLength="60" value={name} onChange={e=>setName(e.target.value)} placeholder="Enter your name"/></label>
       <label>Your rating
         <select value={rating} onChange={e=>setRating(Number(e.target.value))}>
           <option value="5">5 stars — Excellent</option><option value="4">4 stars — Very good</option><option value="3">3 stars — Good</option><option value="2">2 stars — Fair</option><option value="1">1 star — Poor</option>
