@@ -106,6 +106,49 @@ export default function BusinessProfile({ id, onBack }) {
     return () => { alive = false; };
   }, [id]);
 
+  useEffect(() => {
+    if (!business) return;
+
+    const previousTitle = document.title;
+
+    const location = business.location || business.city || 'Nigeria';
+    const category = business.category || 'Business';
+
+    document.title =
+      `${business.name} | ${category} in ${location} | NaijaShelf`;
+
+    const existingMeta = document.querySelector(
+      'meta[name="description"]'
+    );
+
+    const previousDescription = existingMeta?.getAttribute('content');
+
+    const description =
+      `${business.name} is a ${category} business in ${location}. ${business.description || 'Discover this business on NaijaShelf.'}`;
+
+    let metaDescription = document.querySelector(
+      'meta[name="description"]'
+    );
+
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.name = 'description';
+      document.head.appendChild(metaDescription);
+    }
+
+    metaDescription.setAttribute('content', description.slice(0, 160));
+
+    return () => {
+  document.title = previousTitle;
+
+  if (previousDescription !== null && previousDescription !== undefined) {
+    metaDescription.setAttribute('content', previousDescription);
+  } else {
+    metaDescription.remove();
+  }
+};
+  }, [business]);
+
   if (loading) return <main className="profile-state"><div className="profile-spinner"/>Loading business profile…</main>;
   if (!business) return <main className="profile-state"><Store size={30}/><h1>Business not found</h1><p>This listing may have been removed or is not currently approved.</p><button className="btn btn-dark" onClick={onBack}><ArrowLeft size={16}/> Back to directory</button></main>;
 
