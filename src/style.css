@@ -140,3 +140,30 @@
   outline-offset: 2px;
 }
 
+
+
+/* Step 6: consistent keyboard focus and comfortable touch targets */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #78945f;
+  outline-offset: 3px;
+}
+
+@media (max-width: 680px) {
+  .mobile-menu {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+  }
+
+  .category {
+    min-height: 40px;
+  }
+
+  .profile-back,
+  .profile-share {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
