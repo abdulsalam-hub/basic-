@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addDoc, collection, onSnapshot, query, where, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, onSnapshot, query as firestoreQuery, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
 import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap } from 'lucide-react';
 
@@ -26,7 +26,7 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [published, setPublished] = useState([]);
-  useEffect(() => onSnapshot(query(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
+  useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
   const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
   const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
 
