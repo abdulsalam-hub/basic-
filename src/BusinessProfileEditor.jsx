@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, query, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { BadgeCheck, ImagePlus, Save, Store, UploadCloud } from 'lucide-react';
 import { auth, db, storage } from './firebase.js';
@@ -17,7 +17,7 @@ export default function BusinessProfileEditor() {
   const [message,setMessage] = useState('');
   const [error,setError] = useState('');
 
-  useEffect(() => onSnapshot(query(collection(db,'businesses')), snap => {
+  useEffect(() => onSnapshot(query(collection(db,'businesses'),where('status','==','approved')), snap => {
     const approved = snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==='approved').sort((a,b)=>clean(a.name).localeCompare(clean(b.name)));
     setBusinesses(approved);
     setSelectedId(current => approved.some(x=>x.id===current) ? current : (approved[0]?.id || ''));
