@@ -97,3 +97,46 @@
   }
 }
 
+
+
+/* Directory loading and connection feedback */
+.directory-status {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #f1f4eb;
+  color: #526847;
+  font-size: 13px;
+}
+
+.directory-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 13px 15px;
+  border: 1px solid #edc9bd;
+  border-radius: 9px;
+  background: #fff5f1;
+  color: #8b3f2d;
+  font-size: 13px;
+}
+
+.directory-error button {
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 13px;
+  background: #8b3f2d;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.directory-error button:focus-visible {
+  outline: 3px solid #d99b87;
+  outline-offset: 2px;
+}
+
