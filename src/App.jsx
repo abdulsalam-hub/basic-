@@ -36,7 +36,7 @@ function App() {
   const openProfile = (id) => { window.history.pushState({}, '', '/business/' + encodeURIComponent(id)); setProfileId(id); window.scrollTo({top:0,behavior:'smooth'}); };
   const goHome = () => { window.history.pushState({}, '', '/'); setProfileId(''); window.scrollTo({top:0,behavior:'smooth'}); };
   useEffect(() => onSnapshot(firestoreQuery(collection(db, 'businesses'), where('status', '==', 'approved')), snap => setPublished(snap.docs.map(d => ({id:d.id,...d.data()}))), err => console.error('Directory load failed:', err)), []);
-  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
+  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [], demo:false })), [published]);
   const filtered = useMemo(() => [...liveListings, ...listings].filter(item => (active === 'All businesses' || item.category === active) && (item.name + item.category + item.location + item.description).toLowerCase().includes(query.toLowerCase())), [active, query, liveListings]);
 
   const submit = async (e) => {
@@ -114,7 +114,7 @@ function App() {
         <div className="business-grid">{filtered.map(item=><article className="business-card" key={item.id}>
           <div className={`card-art ${item.color}`}>{item.logoUrl ? <img className="business-card-logo" src={item.logoUrl} alt={item.name + ' logo'} loading="lazy"/> : <span className="card-monogram">{item.initials}</span>}<span className="card-tag">{item.tag}</span>{item.demo ? <span className="card-demo">SAMPLE</span> : <span className="card-demo">APPROVED</span>}</div>
           <div className="card-content">
-            <div className="card-meta"><span>{item.category}</span>{item.location && <><span className="meta-dot">·</span><MapPin size={12}/><span>{item.location}</span></>}</div>
+            <div className="card-meta"><span>{item.category}</span>{item.location && <><span className="meta-dot">·</span><MapPin size={12}/><span>{item.location}</span></>}{item.isVerified && <span className="verified-chip"><BadgeCheck size={12}/> Verified</span>}</div>
             <h3>{item.name}</h3>
             <p>{item.description}</p>
             {item.products.length > 0 && <div className="product-tags">{item.products.slice(0,3).map((product,i)=><span key={i}>{product}</span>)}</div>}
