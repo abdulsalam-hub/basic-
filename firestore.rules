@@ -5,8 +5,7 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Required for admin collectionGroup(db, 'reviews') queries.
-    // Public reads are still controlled by the business-specific review rule below.
+    // Admin-only collection-group access for review moderation.
     match /{path=**}/reviews/{reviewId} {
       allow read: if isAdmin();
     }
@@ -36,6 +35,8 @@ service cloud.firestore {
           request.resource.data.uid == request.auth.uid &&
           request.resource.data.businessId == businessId &&
           request.resource.data.businessName is string &&
+          request.resource.data.businessName.size() >= 2 &&
+          request.resource.data.businessName.size() <= 100 &&
           request.resource.data.reviewerName is string &&
           request.resource.data.reviewerName.size() >= 1 &&
           request.resource.data.reviewerName.size() <= 60 &&
@@ -64,6 +65,10 @@ service cloud.firestore {
           'businessName', 'ownerName', 'category', 'city', 'whatsapp',
           'status', 'source', 'createdAt'
         ]) &&
+        request.resource.data.keys().hasAll([
+          'businessName', 'ownerName', 'category', 'city', 'whatsapp',
+          'status', 'source', 'createdAt'
+        ]) &&
         request.resource.data.businessName is string &&
         request.resource.data.businessName.size() >= 2 &&
         request.resource.data.businessName.size() <= 100 &&
@@ -71,19 +76,26 @@ service cloud.firestore {
         request.resource.data.ownerName.size() >= 2 &&
         request.resource.data.ownerName.size() <= 100 &&
         request.resource.data.category is string &&
+        request.resource.data.category.size() >= 2 &&
+        request.resource.data.category.size() <= 60 &&
         request.resource.data.city is string &&
+        request.resource.data.city.size() >= 2 &&
         request.resource.data.city.size() <= 80 &&
         request.resource.data.whatsapp is string &&
         request.resource.data.whatsapp.size() >= 7 &&
         request.resource.data.whatsapp.size() <= 25 &&
         request.resource.data.status == 'pending' &&
-        request.resource.data.source == 'website';
+        request.resource.data.source == 'website' &&
+        request.resource.data.createdAt is timestamp;
+
       allow read: if isAdmin();
+
       allow update: if isAdmin() &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status', 'reviewedAt', 'reviewedBy', 'rejectionReason'
         ]) &&
         request.resource.data.status in ['approved', 'rejected'];
+
       allow delete: if isAdmin();
     }
   }
