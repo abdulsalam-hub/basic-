@@ -25,7 +25,7 @@
 @media(max-width:390px){.business-card{grid-template-columns:96px minmax(0,1fr)}.card-content{padding:12px;min-height:205px}.card-content h3{font-size:15px}.card-content p{font-size:10px}.card-monogram{font-size:27px}.seller-contact{gap:6px;font-size:9px}}
 @media(min-width:681px) and (max-width:900px){.business-card{min-height:340px}.card-content p{min-height:72px}}
 
-.business-card-logo{position:relative;z-index:1;width:90%;height:90%;max-width:100%;max-height:100%;object-fit:contain;border-radius:25px;background:#fff;padding:7px;box-shadow:0 8px 24px #263c2d18}
+.business-card-logo{position:relative;z-index:1;width:100px;height:100px;max-width:90%;max-height:80%;object-fit:contain;border-radius:25px;background:#fff;padding:7px;box-shadow:0 8px 24px #263c2d18}
 
 
 .discovery-controls {
