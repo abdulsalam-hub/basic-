@@ -11,7 +11,8 @@ service cloud.firestore {
     }
 
     match /businesses/{businessId} {
-      allow read: if resource.data.status == 'approved';
+      // Public visitors may read approved listings; administrators may read all business records.
+      allow get, list: if resource.data.status == 'approved' || isAdmin();
       allow create, update, delete: if isAdmin();
 
       match /reviews/{reviewId} {
@@ -62,11 +63,11 @@ service cloud.firestore {
     match /sellerSubmissions/{submissionId} {
       allow create: if
         request.resource.data.keys().hasOnly([
-          'businessName', 'ownerName', 'category', 'city', 'whatsapp',
+          'businessName', 'ownerName', 'category', 'city', 'description', 'whatsapp',
           'status', 'source', 'createdAt'
         ]) &&
         request.resource.data.keys().hasAll([
-          'businessName', 'ownerName', 'category', 'city', 'whatsapp',
+          'businessName', 'ownerName', 'category', 'city', 'description', 'whatsapp',
           'status', 'source', 'createdAt'
         ]) &&
         request.resource.data.businessName is string &&
@@ -81,6 +82,11 @@ service cloud.firestore {
         request.resource.data.city is string &&
         request.resource.data.city.size() >= 2 &&
         request.resource.data.city.size() <= 80 &&
+        (!('description' in request.resource.data) || (
+          request.resource.data.description is string &&
+          request.resource.data.description.size() >= 20 &&
+          request.resource.data.description.size() <= 600
+        )) &&
         request.resource.data.whatsapp is string &&
         request.resource.data.whatsapp.size() >= 7 &&
         request.resource.data.whatsapp.size() <= 25 &&
