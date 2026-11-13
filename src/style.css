@@ -260,3 +260,49 @@
     transition: none;
   }
 }
+
+
+/* Final directory polish: consistent card rhythm and readable descriptions */
+.business-card {
+  height: 100%;
+  border-color: #e6e9df;
+  box-shadow: 0 6px 24px rgba(38, 60, 45, .055);
+}
+.business-card:focus-within {
+  outline: 2px solid #8da276;
+  outline-offset: 3px;
+}
+.card-content p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: 0;
+}
+.card-content h3 {
+  overflow-wrap: anywhere;
+}
+.card-art {
+  isolation: isolate;
+}
+.card-tag {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.seller-contact {
+  box-shadow: 0 4px 12px rgba(38, 60, 45, .12);
+}
+.seller-contact:focus-visible,
+.profile-view-link:focus-visible {
+  outline: 3px solid #91a77a;
+  outline-offset: 3px;
+}
+@media (max-width: 680px) {
+  .card-content p {
+    -webkit-line-clamp: 3;
+  }
+  .card-actions {
+    width: 100%;
+  }
+}
