@@ -71,7 +71,7 @@ export default function Admin() {
         name:clean(item.businessName), ownerName:clean(item.ownerName),
         category:clean(item.category), location:clean(item.city), city:clean(item.city),
         whatsapp:clean(item.whatsapp),
-        description:'A NaijaShelf business. Contact the seller directly to learn more.',
+        description:clean(item.description) || 'Contact this business on NaijaShelf to learn more about its products and services.',
         products:[],status:'approved',sourceSubmissionId:item.id,
         createdAt:serverTimestamp(),publishedAt:serverTimestamp(),publishedBy:user.uid
       });
