@@ -25,9 +25,10 @@
 @media(max-width:390px){.business-card{grid-template-columns:96px minmax(0,1fr)}.card-content{padding:12px;min-height:205px}.card-content h3{font-size:15px}.card-content p{font-size:10px}.card-monogram{font-size:27px}.seller-contact{gap:6px;font-size:9px}}
 @media(min-width:681px) and (max-width:900px){.business-card{min-height:340px}.card-content p{min-height:72px}}
 
-.business-card-logo{position:relative;z-index:1;width:100px;height:100px;max-width:90%;max-height:80%;object-fit:contain;border-radius:25px;background:#fff;padding:7px;box-shadow:0 4px 12px #263c2d18}
+.business-card-logo{position:absolute;inset:0;z-index:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;border-radius:0;background:transparent;padding:0;box-shadow:none}
 
-.business-card-logo img{border-radius:12px;}
+.card-art:has(.business-card-logo):before,.card-art:has(.business-card-logo):after{display:none}
+.card-tag,.card-demo{z-index:2}
 .discovery-controls {
   display: flex;
   flex-wrap: wrap;
