@@ -58,3 +58,15 @@
 .review-admin-date{font-size:9px;color:#92988c}
 .review-moderation .application-info>p{font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:650px){.editor-verification{align-items:flex-start;flex-direction:column}.editor-hour-row{grid-template-columns:1fr 1fr;gap:9px}.editor-hour-row>b{grid-column:1/-1}.editor-closed{justify-self:start}.review-moderation{padding:16px}}
+
+
+
+.report-list{display:grid;gap:12px;margin-top:16px}
+.report-card{padding:18px;border:1px solid #e6e9df;border-radius:12px;background:#fff}
+.report-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.report-card-head>b{font-size:14px;color:#354535}
+.report-card p{font-size:12px;line-height:1.65;color:#667064;margin:10px 0}
+.report-card small{font-size:10px;color:#969b90}
+.report-card .application-actions{margin-top:14px}
+.report-moderation .admin-tabs{margin:20px 0}
+@media(max-width:600px){.report-card{padding:14px}.report-card-head{align-items:flex-start}}
