@@ -6,6 +6,7 @@ import { auth, db } from './firebase.js';
 import './admin.css';
 import BusinessProfileEditor from './BusinessProfileEditor.jsx';
 import ReviewModeration from './ReviewModeration.jsx';
+import ReportModeration from './ReportModeration.jsx';
 
 const clean = value => String(value || '').trim();
 const dateLabel = value => value && value.toDate ? value.toDate().toLocaleString() : 'Just received';
@@ -121,8 +122,8 @@ export default function Admin() {
     </header>
     <section className="admin-content">
       <div className="admin-heading"><div><div className="admin-eyebrow">SELLER OPERATIONS</div><h1>Good to see you.</h1><p>Review applications and decide which businesses join the NaijaShelf directory.</p></div><button className="admin-refresh" onClick={()=>window.location.reload()}><RefreshCw size={15}/> Refresh</button></div>
-      <div className="admin-workspace-tabs"><button className={workspaceTab==='applications'?'active':''} onClick={()=>setWorkspaceTab('applications')}>Seller applications</button><button className={workspaceTab==='profiles'?'active':''} onClick={()=>setWorkspaceTab('profiles')}>Business profile editor</button><button className={workspaceTab==='reviews'?'active':''} onClick={()=>setWorkspaceTab('reviews')}>Customer reviews</button></div>
-      {workspaceTab==='profiles' ? <BusinessProfileEditor/> : workspaceTab==='reviews' ? <ReviewModeration/> : <>
+      <div className="admin-workspace-tabs"><button className={workspaceTab==='applications'?'active':''} onClick={()=>setWorkspaceTab('applications')}>Seller applications</button><button className={workspaceTab==='profiles'?'active':''} onClick={()=>setWorkspaceTab('profiles')}>Business profile editor</button><button className={workspaceTab==='reviews'?'active':''} onClick={()=>setWorkspaceTab('reviews')}>Customer reviews</button><button className={workspaceTab==='reports'?'active':''} onClick={()=>setWorkspaceTab('reports')}>Listing reports</button></div>
+      {workspaceTab==='profiles' ? <BusinessProfileEditor/> : workspaceTab==='reviews' ? <ReviewModeration/> : workspaceTab==='reports' ? <ReportModeration/> : <>
       <div className="admin-stats">
         {['all','pending','approved','rejected'].map(key=><button key={key} className={filter===key?'selected':''} onClick={()=>setFilter(key)}><span>{key==='all'?'Total applications':key==='pending'?'Awaiting review':key[0].toUpperCase()+key.slice(1)}</span><b>{counts[key]}</b></button>)}
       </div>
