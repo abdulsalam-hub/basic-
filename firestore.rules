@@ -82,11 +82,9 @@ service cloud.firestore {
         request.resource.data.city is string &&
         request.resource.data.city.size() >= 2 &&
         request.resource.data.city.size() <= 80 &&
-        (!('description' in request.resource.data) || (
-          request.resource.data.description is string &&
-          request.resource.data.description.size() >= 20 &&
-          request.resource.data.description.size() <= 600
-        )) &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() >= 20 &&
+        request.resource.data.description.size() <= 600 &&
         request.resource.data.whatsapp is string &&
         request.resource.data.whatsapp.size() >= 7 &&
         request.resource.data.whatsapp.size() <= 25 &&
