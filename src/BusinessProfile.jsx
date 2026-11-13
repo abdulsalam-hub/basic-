@@ -108,6 +108,49 @@ function CustomerReviews({ business }) {
 }
 
 
+
+function OwnershipVerification({business}) {
+ const [requesterName,setRequesterName]=useState('');
+ const [relationship,setRelationship]=useState('Business owner');
+ const [contactPhone,setContactPhone]=useState('');
+ const [evidence,setEvidence]=useState('');
+ const [sending,setSending]=useState(false);
+ const [message,setMessage]=useState('');
+ const [error,setError]=useState('');
+ async function submit(e){
+  e.preventDefault();
+  const name=requesterName.trim(),phone=contactPhone.trim(),proof=evidence.trim();
+  if(name.length<2||name.length>80){setError('Enter a name between 2 and 80 characters.');return;}
+  if(phone.replace(/\D/g,'').length<7||phone.length>25){setError('Enter a valid phone or WhatsApp number.');return;}
+  if(proof.length<20||proof.length>500){setError('Please explain how you are connected to this business in 20–500 characters.');return;}
+  setSending(true);setError('');setMessage('');
+  try{
+   const user=auth.currentUser||(await signInAnonymously(auth)).user;
+   await addDoc(collection(db,'businessVerificationRequests'),{
+    reporterUid:user.uid,businessId:business.id,businessName:business.name,
+    requesterName:name,relationship,contactPhone:phone,evidence:proof,
+    status:'pending',createdAt:serverTimestamp()
+   });
+   setRequesterName('');setContactPhone('');setEvidence('');
+   setMessage('Your verification request has been received. NaijaShelf will contact you after reviewing it.');
+  }catch(err){console.error(err);setError(err.code==='permission-denied'?'The request could not be saved. The latest Firestore Rules may not be published yet.':'Could not submit your request. Please try again.');}
+  finally{setSending(false);}
+ }
+ return <article className="profile-panel ownership-request">
+  <span className="profile-kicker">BUSINESS TRUST</span><h2><BadgeCheck size={18}/> Request ownership verification</h2>
+  <p>Are you the owner or an authorised representative? Request a verified badge. NaijaShelf will independently contact the business before approving it.</p>
+  {business.isVerified===true?<p className="review-success" role="status">This business has already been verified by NaijaShelf.</p>:<form onSubmit={submit}>
+   <label>Your full name<input required minLength="2" maxLength="80" value={requesterName} onChange={e=>setRequesterName(e.target.value)} placeholder="Name of requester"/></label>
+   <label>Your relationship to the business<select value={relationship} onChange={e=>setRelationship(e.target.value)}><option>Business owner</option><option>Director / partner</option><option>Authorised employee</option><option>Family representative</option></select></label>
+   <label>Your phone / WhatsApp<input required maxLength="25" value={contactPhone} onChange={e=>setContactPhone(e.target.value)} placeholder="Phone number we can reach you on"/></label>
+   <label>How can we confirm your authority?<textarea required minLength="20" maxLength="500" rows="3" value={evidence} onChange={e=>setEvidence(e.target.value)} placeholder="Explain your connection and what evidence you can provide when contacted."/></label>
+   <small>Do not submit passwords, bank details or identity-document numbers here. We will contact you to arrange a safe verification check.</small>
+   {error&&<p className="review-error" role="alert">{error}</p>}{message&&<p className="review-success" role="status">{message}</p>}
+   <button className="profile-report-submit" disabled={sending}>{sending?'Submitting…':'Send verification request'}</button>
+  </form>}
+ </article>;
+}
+
 function ListingReport({ business }) {
   const [reason,setReason] = useState('Incorrect business information');
   const [details,setDetails] = useState('');
@@ -311,6 +354,7 @@ export default function BusinessProfile({ id, onBack }) {
         </article>
         <article className="profile-panel"><span className="profile-kicker">FIND THE BUSINESS</span><h2>Location</h2><p className="profile-location"><MapPin size={17}/>{business.address || business.location || business.city || 'Location not provided'}</p></article>
         {hours && <article className="profile-panel"><span className="profile-kicker">WHEN TO VISIT</span><h2><Clock3 size={19}/> Opening hours</h2><div className="business-hours-list">{dayNames.map(([key,label])=>{const day=hours[key]||{};return <div className="business-hours-row" key={key}><b>{label}</b><span>{day.closed?'Closed':day.open&&day.close?timeLabel(day.open)+' – '+timeLabel(day.close):'Hours not set'}</span></div>})}</div></article>}
+        <OwnershipVerification business={business}/>
         <CustomerReviews business={business}/>
       </section>
       <aside className="profile-sidebar"><div className="profile-contact-card"><span className="profile-kicker">CONNECT WITH THE SELLER</span><h2>Ready to make an enquiry?</h2><p>Contact the business directly to ask questions, check availability or learn more.</p>
