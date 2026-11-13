@@ -83,7 +83,7 @@ export default function BusinessProfileEditor() {
         phone:clean(form.phone), website:clean(form.website), instagram:clean(form.instagram),
         logoUrl:clean(form.logoUrl), coverImage:clean(form.coverImage),
         products:form.productsText.split('\n').map(clean).filter(Boolean).slice(0,30),
-        isVerified:form.isVerified===true, hours:form.hours,
+        hours:form.hours,
         updatedAt:serverTimestamp(), updatedBy:auth.currentUser?.uid || ''
       };
       if (confirmFreshness) {
@@ -134,8 +134,8 @@ export default function BusinessProfileEditor() {
         {selected.lastConfirmedAt?.toDate && <small>Last confirmed: {selected.lastConfirmedAt.toDate().toLocaleDateString()}</small>}
       </section>
       <section className="editor-verification">
-        <div><ShieldCheck size={19}/><span><b>Verified business status</b><small>Only administrators can grant or remove this badge. Verify the business details before switching it on.</small></span></div>
-        <label className="editor-toggle"><input type="checkbox" checked={form.isVerified} onChange={e=>setForm(current=>({...current,isVerified:e.target.checked}))}/><span>{form.isVerified?'Verified':'Not verified'}</span></label>
+        <div><ShieldCheck size={19}/><span><b>Business verification status</b><small>{form.isVerified ? 'This business has been verified by NaijaShelf.' : 'Verification is granted only after reviewing an ownership request and independently confirming the business.'} Manage requests in the Verification tab.</small></span></div>
+        <span className="editor-count">{form.isVerified?'Verified':'Not verified'}</span>
       </section>
       <section className="editor-hours">
         <div className="editor-section-title"><Clock3 size={18}/><span><b>Opening hours</b><small>Set the hours customers should see on the public profile.</small></span></div>
