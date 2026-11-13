@@ -168,3 +168,95 @@
     justify-content: center;
   }
 }
+
+
+/* Card polish: cleaner image presentation and truly centered WhatsApp action */
+.business-card {
+  border: 1px solid #e7e9df;
+  border-radius: 16px;
+  box-shadow: 0 8px 26px rgba(38, 60, 45, 0.07);
+  overflow: hidden;
+}
+.business-card:hover {
+  box-shadow: 0 16px 34px rgba(38, 60, 45, 0.12);
+}
+.card-art {
+  background: linear-gradient(145deg, #e8eddf, #dce5d2);
+}
+.card-art:has(.business-card-logo) {
+  background: #e8eddf;
+}
+.business-card-logo {
+  object-fit: cover;
+  object-position: center;
+  transition: transform .35s ease;
+}
+.business-card:hover .business-card-logo {
+  transform: scale(1.035);
+}
+.card-content {
+  padding: 18px;
+}
+.card-content p {
+  overflow-wrap: anywhere;
+}
+.seller-contact {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 42px;
+  min-height: 44px;
+  border-radius: 9px;
+  letter-spacing: .01em;
+}
+.seller-contact svg {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+}
+.seller-contact svg:last-child {
+  margin-left: 0;
+}
+@media (max-width: 680px) {
+  .business-card {
+    border-radius: 14px;
+    grid-template-columns: 116px minmax(0, 1fr);
+  }
+  .card-art {
+    min-height: 100%;
+    overflow: hidden;
+  }
+  .business-card-logo {
+    object-fit: cover;
+    object-position: center;
+  }
+  .card-content {
+    padding: 14px 13px;
+    min-height: 0;
+  }
+  .seller-contact {
+    min-height: 42px;
+    padding: 0 34px;
+    font-size: 10px;
+  }
+  .seller-contact svg {
+    left: 11px;
+  }
+}
+@media (max-width: 390px) {
+  .business-card {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+  .seller-contact {
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .business-card-logo {
+    transition: none;
+  }
+}
