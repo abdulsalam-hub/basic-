@@ -160,3 +160,9 @@
     transition: none;
   }
 }
+
+
+/* Customer listing-report action */
+.profile-report-link{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:13px;padding:10px 12px;border:1px solid #e6e8df;border-radius:7px;color:#737c6e;background:#fbfcf9;text-decoration:none;text-align:center;font-size:10px;font-weight:700;line-height:1.5;transition:background .2s,border-color .2s,color .2s}
+.profile-report-link:hover{background:#f2f5ed;border-color:#cbd4c1;color:#40583d}
+.profile-report-link:focus-visible{outline:3px solid #82966a;outline-offset:3px}
