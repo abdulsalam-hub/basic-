@@ -77,3 +77,86 @@
 .review-error{background:#fff0ed;color:#9a4e43}
 .review-success{background:#edf4e8;color:#4f7044}
 @media(max-width:680px){.business-hours-row{font-size:10px}.profile-badges{gap:6px}.profile-verified{font-size:7px}}
+
+
+/* Public profile visual refinement and clearer contact actions */
+.profile-cover {
+  overflow: hidden;
+  border-radius: 16px;
+  background: #e6ebdf;
+}
+.profile-cover>img {
+  display: block;
+  object-position: center;
+}
+.profile-identity {
+  padding-bottom: 3px;
+}
+.profile-logo {
+  box-shadow: 0 10px 28px rgba(35, 52, 37, .14);
+}
+.profile-panel,
+.profile-contact-card {
+  box-shadow: 0 5px 22px rgba(38, 60, 45, .045);
+}
+.profile-panel {
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.profile-panel:hover {
+  box-shadow: 0 9px 26px rgba(38, 60, 45, .075);
+}
+.profile-whatsapp {
+  min-height: 48px;
+  position: relative;
+  padding: 0 42px;
+  text-align: center;
+  box-shadow: 0 5px 14px rgba(38, 60, 45, .15);
+  transition: background .2s ease, transform .2s ease;
+}
+.profile-whatsapp:hover {
+  background: #38553f;
+  transform: translateY(-1px);
+}
+.profile-whatsapp svg:first-child {
+  position: absolute;
+  left: 15px;
+}
+.profile-whatsapp svg:last-child {
+  position: absolute;
+  right: 14px;
+  margin-left: 0;
+}
+.profile-secondary-contact,
+.profile-share-wide {
+  min-height: 44px;
+}
+@media (max-width: 680px) {
+  .profile-cover {
+    border-radius: 12px;
+  }
+  .profile-identity {
+    align-items: flex-end;
+  }
+  .profile-title {
+    padding-bottom: 7px;
+  }
+  .profile-layout {
+    margin-top: 20px;
+  }
+  .profile-contact-card {
+    border-color: #dfe6d8;
+    box-shadow: 0 8px 25px rgba(38, 60, 45, .07);
+  }
+  .profile-whatsapp {
+    min-height: 48px;
+  }
+  .profile-footer {
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-panel,
+  .profile-whatsapp {
+    transition: none;
+  }
+}
