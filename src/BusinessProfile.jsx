@@ -348,7 +348,7 @@ export default function BusinessProfile({ id, onBack }) {
     </section>
     <div className="profile-layout">
       <section className="profile-main-content">
-        <article className="profile-panel"><span className="profile-kicker">ABOUT THE BUSINESS</span><h2>Get to know {business.name}</h2><p>{business.description || 'Discover this local business on NaijaShelf. Contact the seller directly to learn more about its products and services.'}</p></article>
+        <article className="profile-panel"><span className="profile-kicker">ABOUT THE BUSINESS</span><h2>Get to know {business.name}</h2><p>{business.description || 'Discover this local business on NaijaShelf. Contact the seller directly to learn more about its products and services.'}</p><small className="profile-freshness">{business.lastConfirmedAt?.toDate ? 'Business details last confirmed on ' + business.lastConfirmedAt.toDate().toLocaleDateString() : 'Business details have not yet been independently reconfirmed by NaijaShelf.'}</small></article>
         <article className="profile-panel"><span className="profile-kicker">WHAT THEY OFFER</span><h2>Products & services</h2>
           {Array.isArray(business.products) && business.products.length ? <div className="profile-products">{business.products.map((product,index)=><span key={index}><ShoppingBag size={15}/>{typeof product === 'string' ? product : product.name || product.title || 'Offering'}</span>)}</div> : <p>Contact the business to ask about available products and services.</p>}
         </article>
