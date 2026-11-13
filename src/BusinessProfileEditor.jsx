@@ -19,6 +19,7 @@ export default function BusinessProfileEditor() {
   const [uploading,setUploading] = useState('');
   const [message,setMessage] = useState('');
   const [error,setError] = useState('');
+  const [confirmFreshness,setConfirmFreshness] = useState(false);
 
   useEffect(() => onSnapshot(query(collection(db,'businesses'),where('status','==','approved')), snap => {
     const approved = snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==='approved').sort((a,b)=>clean(a.name).localeCompare(clean(b.name)));
@@ -40,7 +41,7 @@ export default function BusinessProfileEditor() {
       productsText:Array.isArray(selected.products) ? selected.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\n') : '',
       isVerified:selected.isVerified===true, hours
     });
-    setMessage(''); setError('');
+    setMessage(''); setError(''); setConfirmFreshness(false);
   },[selectedId,selected?.updatedAt]);
 
   const change = key => e => setForm(current=>({...current,[key]:e.target.value}));
@@ -76,7 +77,7 @@ export default function BusinessProfileEditor() {
     setSaving(true); setError(''); setMessage('');
     try {
       const businessRef = doc(db,'businesses',selectedId);
-      await updateDoc(businessRef,{
+      const updates = {
         name:clean(form.name), category:clean(form.category), location:clean(form.location), city:clean(form.location),
         address:clean(form.address), description:clean(form.description), whatsapp:clean(form.whatsapp),
         phone:clean(form.phone), website:clean(form.website), instagram:clean(form.instagram),
@@ -84,7 +85,12 @@ export default function BusinessProfileEditor() {
         products:form.productsText.split('\n').map(clean).filter(Boolean).slice(0,30),
         isVerified:form.isVerified===true, hours:form.hours,
         updatedAt:serverTimestamp(), updatedBy:auth.currentUser?.uid || ''
-      });
+      };
+      if (confirmFreshness) {
+        updates.lastConfirmedAt = serverTimestamp();
+        updates.lastConfirmedBy = auth.currentUser?.uid || '';
+      }
+      await updateDoc(businessRef,updates);
       const saved = await getDoc(businessRef);
       const savedData = saved.exists() ? saved.data() : null;
       if (!savedData || clean(savedData.logoUrl)!==clean(form.logoUrl) || clean(savedData.coverImage)!==clean(form.coverImage) || savedData.isVerified!==form.isVerified) {
@@ -123,6 +129,10 @@ export default function BusinessProfileEditor() {
         <label>Website<input value={form.website} onChange={change('website')} placeholder="https://example.com"/></label>
         <label>Instagram username / link<input value={form.instagram} onChange={change('instagram')} placeholder="@yourbusiness"/></label>
       </div>
+      <section className="editor-freshness">
+        <label><input type="checkbox" checked={confirmFreshness} onChange={event=>setConfirmFreshness(event.target.checked)}/><span><b>Confirm listing information is current</b><small>Tick only after checking the details with the business owner. The confirmation date will be visible to customers.</small></span></label>
+        {selected.lastConfirmedAt?.toDate && <small>Last confirmed: {selected.lastConfirmedAt.toDate().toLocaleDateString()}</small>}
+      </section>
       <section className="editor-verification">
         <div><ShieldCheck size={19}/><span><b>Verified business status</b><small>Only administrators can grant or remove this badge. Verify the business details before switching it on.</small></span></div>
         <label className="editor-toggle"><input type="checkbox" checked={form.isVerified} onChange={e=>setForm(current=>({...current,isVerified:e.target.checked}))}/><span>{form.isVerified?'Verified':'Not verified'}</span></label>
