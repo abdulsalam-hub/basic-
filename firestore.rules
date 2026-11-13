@@ -60,6 +60,48 @@ service cloud.firestore {
       }
     }
 
+
+    match /listingReports/{reportId} {
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly([
+          'reporterUid', 'businessId', 'businessName', 'reason', 'details', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'reporterUid', 'businessId', 'businessName', 'reason', 'details', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.reporterUid == request.auth.uid &&
+        request.resource.data.businessId is string &&
+        request.resource.data.businessId.size() >= 1 &&
+        request.resource.data.businessId.size() <= 128 &&
+        get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status == 'approved' &&
+        request.resource.data.businessName is string &&
+        request.resource.data.businessName.size() >= 2 &&
+        request.resource.data.businessName.size() <= 100 &&
+        request.resource.data.reason in [
+          'Incorrect business information',
+          'Business appears to be closed',
+          'Fake or impersonating business',
+          'Misleading products or services',
+          'Inappropriate or suspicious content',
+          'Other concern'
+        ] &&
+        request.resource.data.details is string &&
+        request.resource.data.details.size() >= 10 &&
+        request.resource.data.details.size() <= 700 &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdAt is timestamp;
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedAt', 'reviewedBy'
+        ]) &&
+        request.resource.data.status in ['reviewed', 'dismissed'];
+
+      allow delete: if isAdmin();
+    }
+
     match /sellerSubmissions/{submissionId} {
       allow create: if
         request.resource.data.keys().hasOnly([
