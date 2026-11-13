@@ -70,3 +70,11 @@
 .report-card .application-actions{margin-top:14px}
 .report-moderation .admin-tabs{margin:20px 0}
 @media(max-width:600px){.report-card{padding:14px}.report-card-head{align-items:flex-start}}
+
+
+.editor-freshness{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:15px;border:1px solid #dfe8d7;border-radius:10px;background:#f7faf4}
+.editor-freshness label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.editor-freshness label>input{width:18px;height:18px;flex:0 0 auto;margin-top:2px;accent-color:#526d48}
+.editor-freshness label span{display:grid;gap:4px}
+.editor-freshness b{font-size:12px;color:#40533a}
+.editor-freshness small{font-size:10px;line-height:1.6;color:#7b8574}
