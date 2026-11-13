@@ -61,6 +61,51 @@ service cloud.firestore {
     }
 
 
+
+    match /businessVerificationRequests/{requestId} {
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly([
+          'reporterUid', 'businessId', 'businessName', 'requesterName',
+          'relationship', 'contactPhone', 'evidence', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'reporterUid', 'businessId', 'businessName', 'requesterName',
+          'relationship', 'contactPhone', 'evidence', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.reporterUid == request.auth.uid &&
+        request.resource.data.businessId is string &&
+        request.resource.data.businessId.size() >= 1 &&
+        request.resource.data.businessId.size() <= 128 &&
+        get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status == 'approved' &&
+        request.resource.data.businessName is string &&
+        request.resource.data.businessName.size() >= 2 &&
+        request.resource.data.businessName.size() <= 100 &&
+        request.resource.data.requesterName is string &&
+        request.resource.data.requesterName.size() >= 2 &&
+        request.resource.data.requesterName.size() <= 80 &&
+        request.resource.data.relationship in [
+          'Business owner', 'Director / partner', 'Authorised employee', 'Family representative'
+        ] &&
+        request.resource.data.contactPhone is string &&
+        request.resource.data.contactPhone.size() >= 7 &&
+        request.resource.data.contactPhone.size() <= 25 &&
+        request.resource.data.evidence is string &&
+        request.resource.data.evidence.size() >= 20 &&
+        request.resource.data.evidence.size() <= 500 &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdAt is timestamp;
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedAt', 'reviewedBy'
+        ]) &&
+        request.resource.data.status in ['verified', 'rejected'];
+
+      allow delete: if isAdmin();
+    }
+
     match /listingReports/{reportId} {
       allow create: if request.auth != null &&
         request.resource.data.keys().hasOnly([
