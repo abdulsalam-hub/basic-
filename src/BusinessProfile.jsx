@@ -3,7 +3,7 @@ import { collection, doc, getDoc, onSnapshot, query, setDoc, serverTimestamp, wh
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth } from './firebase.js';
 import './profile.css';
-import { ArrowLeft, ArrowUpRight, BadgeCheck, Globe, Instagram, MapPin, MessageCircle, Phone, Share2, ShieldCheck, ShoppingBag, Store, Star, Clock3 } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, BadgeCheck, Flag, Globe, Instagram, MapPin, MessageCircle, Phone, Share2, ShieldCheck, ShoppingBag, Store, Star, Clock3 } from 'lucide-react';
 
 const dayNames = [
   ['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],
@@ -215,6 +215,7 @@ export default function BusinessProfile({ id, onBack }) {
 
   const phone = String(business.whatsapp || business.phone || '').replace(/\D/g, '').replace(/^0/, '234');
   const contactUrl = phone ? 'https://wa.me/' + phone + '?text=' + encodeURIComponent('Hello ' + business.name + ', I found your business on NaijaShelf and would like to make an enquiry.') : '';
+  const reportUrl = 'https://wa.me/2348021289677?text=' + encodeURIComponent('Hello NaijaShelf, I would like to report an issue with this business listing.\nBusiness: ' + business.name + '\nProfile: ' + window.location.origin + '/business/' + encodeURIComponent(business.id) + '\nIssue: [Please describe incorrect details, suspected impersonation, closure, or another concern.]');
   const shareProfile = async () => {
     const url = window.location.origin + '/business/' + encodeURIComponent(business.id);
     const data = { title: business.name + ' | NaijaShelf', text: 'Discover ' + business.name + ' on NaijaShelf.', url };
@@ -259,6 +260,7 @@ export default function BusinessProfile({ id, onBack }) {
         {website && <a className="profile-secondary-contact" href={website} target="_blank" rel="noopener noreferrer"><Globe size={16}/> Visit website</a>}
         {instagram && <a className="profile-secondary-contact" href={instagram} target="_blank" rel="noopener noreferrer"><Instagram size={16}/> Instagram</a>}
         <button className="profile-share-wide" onClick={shareProfile}><Share2 size={16}/> Share this business</button>
+        <a className="profile-report-link" href={reportUrl} target="_blank" rel="noopener noreferrer"><Flag size={14}/> Report incorrect information or a safety concern</a>
       </div><p className="profile-trust"><ShieldCheck size={15}/> {business.isVerified === true ? 'NaijaShelf has verified this business.' : 'This business has been approved for the NaijaShelf directory. Approval does not mean identity verification.'}</p></aside>
     </div>
     <footer className="profile-footer"><a className="brand" href="/" onClick={e=>{e.preventDefault();onBack()}}><span className="brand-mark"><Store size={17}/></span><span>naija<span className="brand-light">shelf</span><i>.</i></span></a><span>Helping great local businesses get discovered.</span></footer>
