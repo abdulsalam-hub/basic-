@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, onSnapshot, query, setDoc, serverTimestamp, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, onSnapshot, query, setDoc, serverTimestamp, where } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth } from './firebase.js';
 import './profile.css';
@@ -105,6 +105,65 @@ function CustomerReviews({ business }) {
       <small className="review-moderation-note">Reviews are checked by NaijaShelf before they appear publicly. One review is allowed per anonymous browser session.</small>
     </form>
   </article>;
+}
+
+
+function ListingReport({ business }) {
+  const [reason,setReason] = useState('Incorrect business information');
+  const [details,setDetails] = useState('');
+  const [sending,setSending] = useState(false);
+  const [message,setMessage] = useState('');
+  const [error,setError] = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    const note=details.trim();
+    if (note.length<10 || note.length>700) {
+      setError('Please describe the issue in 10–700 characters.');
+      return;
+    }
+    setSending(true); setError(''); setMessage('');
+    try {
+      const user=auth.currentUser || (await signInAnonymously(auth)).user;
+      await addDoc(collection(db,'listingReports'),{
+        reporterUid:user.uid,
+        businessId:business.id,
+        businessName:business.name,
+        reason,
+        details:note,
+        status:'pending',
+        createdAt:serverTimestamp()
+      });
+      setDetails('');
+      setMessage('Thank you. Your report has been sent to the NaijaShelf review team.');
+    } catch(err) {
+      console.error('Listing report failed:',err);
+      setError(err.code==='permission-denied'?'The report could not be saved. The administrator may need to publish the latest Firestore Rules.':'Could not send your report right now. Please try again later.');
+    } finally { setSending(false); }
+  }
+
+  return <div className="profile-report-box">
+    <div className="profile-report-intro"><Flag size={14}/> Spotted a problem with this listing?</div>
+    <form onSubmit={submit}>
+      <label>What is the issue?
+        <select value={reason} onChange={e=>setReason(e.target.value)}>
+          <option>Incorrect business information</option>
+          <option>Business appears to be closed</option>
+          <option>Fake or impersonating business</option>
+          <option>Misleading products or services</option>
+          <option>Inappropriate or suspicious content</option>
+          <option>Other concern</option>
+        </select>
+      </label>
+      <label>Tell us more
+        <textarea required minLength="10" maxLength="700" rows="3" value={details} onChange={e=>setDetails(e.target.value)} placeholder="Describe what you noticed (10–700 characters)."/>
+      </label>
+      {error && <p className="review-error" role="alert">{error}</p>}
+      {message && <p className="review-success" role="status">{message}</p>}
+      <button className="profile-report-submit" disabled={sending}>{sending?'Sending report…':'Submit report'}</button>
+    </form>
+    <small>Reports are private and reviewed by NaijaShelf. Please do not include passwords or sensitive personal information.</small>
+  </div>;
 }
 
 export default function BusinessProfile({ id, onBack }) {
@@ -260,7 +319,7 @@ export default function BusinessProfile({ id, onBack }) {
         {website && <a className="profile-secondary-contact" href={website} target="_blank" rel="noopener noreferrer"><Globe size={16}/> Visit website</a>}
         {instagram && <a className="profile-secondary-contact" href={instagram} target="_blank" rel="noopener noreferrer"><Instagram size={16}/> Instagram</a>}
         <button className="profile-share-wide" onClick={shareProfile}><Share2 size={16}/> Share this business</button>
-        <a className="profile-report-link" href={reportUrl} target="_blank" rel="noopener noreferrer"><Flag size={14}/> Report incorrect information or a safety concern</a>
+        <ListingReport business={business}/>
       </div><p className="profile-trust"><ShieldCheck size={15}/> {business.isVerified === true ? 'NaijaShelf has verified this business.' : 'This business has been approved for the NaijaShelf directory. Approval does not mean identity verification.'}</p></aside>
     </div>
     <footer className="profile-footer"><a className="brand" href="/" onClick={e=>{e.preventDefault();onBack()}}><span className="brand-mark"><Store size={17}/></span><span>naija<span className="brand-light">shelf</span><i>.</i></span></a><span>Helping great local businesses get discovered.</span></footer>
