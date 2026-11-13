@@ -166,3 +166,16 @@
 .profile-report-link{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:13px;padding:10px 12px;border:1px solid #e6e8df;border-radius:7px;color:#737c6e;background:#fbfcf9;text-decoration:none;text-align:center;font-size:10px;font-weight:700;line-height:1.5;transition:background .2s,border-color .2s,color .2s}
 .profile-report-link:hover{background:#f2f5ed;border-color:#cbd4c1;color:#40583d}
 .profile-report-link:focus-visible{outline:3px solid #82966a;outline-offset:3px}
+
+
+
+.profile-report-box{margin-top:18px;padding:15px;border:1px solid #e8e9df;border-radius:10px;background:#fbfcf9}
+.profile-report-intro{display:flex;align-items:center;gap:7px;margin-bottom:12px;color:#69755e;font-size:11px;font-weight:700}
+.profile-report-box form{display:grid;gap:10px}
+.profile-report-box label{display:grid;gap:6px;color:#586252;font-size:10px;font-weight:700}
+.profile-report-box select,.profile-report-box textarea{width:100%;border:1px solid #dfe4d9;border-radius:7px;background:#fff;padding:10px;color:#3e483a;font:inherit;font-size:11px;min-height:40px}
+.profile-report-box textarea{resize:vertical;line-height:1.5}
+.profile-report-submit{min-height:42px;border:0;border-radius:7px;background:#526747;color:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.profile-report-submit:disabled{opacity:.65;cursor:wait}
+.profile-report-box>small{display:block;margin-top:10px;color:#8a9084;font-size:9px;line-height:1.6}
+.profile-report-box :focus-visible{outline:3px solid #82966a;outline-offset:2px}
