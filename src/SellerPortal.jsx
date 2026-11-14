@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword, signOut, reload, updateProfile
 } from 'firebase/auth';
 import {
-  addDoc, collection, getDoc, getDocs, onSnapshot, query, where, doc, serverTimestamp
+  addDoc, collection, getDoc, onSnapshot, query, where, doc, serverTimestamp, updateDoc
 } from 'firebase/firestore';
 import { ArrowLeft, LogOut, MailCheck, Store, ShieldCheck } from 'lucide-react';
 import { auth, db } from './firebase.js';
@@ -27,6 +27,10 @@ export default function SellerPortal() {
   const [requests,setRequests] = useState([]);
   const [ownedBusinesses,setOwnedBusinesses] = useState([]);
   const [sendingRequest,setSendingRequest] = useState(false);
+  const [editingBusiness,setEditingBusiness] = useState('');
+  const [savingProfile,setSavingProfile] = useState(false);
+  const [uploadingImage,setUploadingImage] = useState('');
+  const [profileForm,setProfileForm] = useState({});
 
   useEffect(() => onAuthStateChanged(auth,current => {
     setUser(current);
@@ -53,6 +57,62 @@ export default function SellerPortal() {
     },err => setError('Could not load linked business accounts.'));
     return () => { stopBusinesses(); stopRequests(); stopLinks(); };
   },[user?.uid,user?.emailVerified]);
+
+  const beginEdit = business => {
+    setEditingBusiness(business.id);
+    setProfileForm({
+      name:business.name||'', category:business.category||'', description:business.description||'',
+      location:business.location||business.city||'', address:business.address||'',
+      phone:business.phone||'', whatsapp:business.whatsapp||'', website:business.website||'',
+      instagram:business.instagram||'', logoUrl:business.logoUrl||'', coverImage:business.coverImage||'',
+      productsText:Array.isArray(business.products)?business.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\\n'):''
+    });
+    setError(''); setNotice('');
+  };
+
+  async function uploadSellerImage(kind,file) {
+    if (!file || !editingBusiness) return;
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setError('Choose a JPG, PNG or WebP image.'); return; }
+    if (file.size>5*1024*1024) { setError('Image must be 5 MB or smaller.'); return; }
+    setUploadingImage(kind); setError(''); setNotice('');
+    try {
+      const body=new FormData();
+      body.append('file',file); body.append('upload_preset','NaijaShelf');
+      body.append('folder','naijashelf/businesses/'+editingBusiness);
+      body.append('public_id',kind+'-'+Date.now());
+      const response=await fetch('https://api.cloudinary.com/v1_1/f3sptoih/image/upload',{method:'POST',body});
+      const result=await response.json();
+      if(!response.ok||!result.secure_url) throw new Error(result?.error?.message||'Image upload failed.');
+      setProfileForm(current=>({...current,[kind==='logo'?'logoUrl':'coverImage']:result.secure_url}));
+      setNotice((kind==='logo'?'Logo':'Cover image')+' uploaded. Save your profile to publish it.');
+    } catch(e) { setError(e.message||'Image upload failed.'); }
+    finally { setUploadingImage(''); }
+  }
+
+  async function saveSellerProfile(e) {
+    e.preventDefault();
+    const business=ownedBusinesses.find(item=>item.id===editingBusiness);
+    if(!business) { setError('This business is not linked to your account.'); return; }
+    if(clean(profileForm.name).length<2) { setError('Business name must contain at least 2 characters.'); return; }
+    if(clean(profileForm.description).length>600) { setError('Description must be 600 characters or fewer.'); return; }
+    setSavingProfile(true); setError(''); setNotice('');
+    try {
+      await updateDoc(doc(db,'businesses',editingBusiness),{
+        name:clean(profileForm.name), category:clean(profileForm.category),
+        description:clean(profileForm.description), location:clean(profileForm.location),
+        city:clean(profileForm.location), address:clean(profileForm.address),
+        phone:clean(profileForm.phone), whatsapp:clean(profileForm.whatsapp),
+        website:clean(profileForm.website), instagram:clean(profileForm.instagram),
+        logoUrl:clean(profileForm.logoUrl), coverImage:clean(profileForm.coverImage),
+        products:profileForm.productsText.split('\\n').map(clean).filter(Boolean).slice(0,30),
+        updatedAt:serverTimestamp(), updatedBy:user.uid
+      });
+      setNotice('Business profile updated successfully.');
+      setEditingBusiness('');
+    } catch(e) {
+      setError(e.code==='permission-denied'?'Permission denied. Confirm the latest seller profile security rules have been published.':e.message||'Could not save your business profile.');
+    } finally { setSavingProfile(false); }
+  }
 
   async function submitAuth(e) {
     e.preventDefault(); setBusy(true); setError(''); setNotice('');
@@ -167,9 +227,34 @@ export default function SellerPortal() {
               <div className="seller-business-logo">{item.logoUrl?<img src={item.logoUrl} alt=""/>:<Store size={21}/>}</div>
               <div><b>{item.name}</b><span>{item.category||'Business'} · {item.location||item.city||'Location not set'}</span><small className="seller-listing-state"><i/> Approved and published</small></div>
             </div>
-            <div className="seller-business-actions"><a href={'/business/'+encodeURIComponent(item.id)}>View public profile</a></div>
+            <div className="seller-business-actions"><a href={'/business/'+encodeURIComponent(item.id)}>View public profile</a><button type="button" onClick={()=>beginEdit(item)}>Edit profile</button></div>
           </article>)}</div> : <p className="seller-muted">No business has been linked to this account yet.</p>}
         </section>
+        {editingBusiness && <section className="seller-section seller-editor-section">
+          <div className="seller-editor-heading"><div><span className="seller-kicker">BUSINESS SETTINGS</span><h2>Edit business profile</h2><p className="seller-muted">Changes are published to your approved listing after you save.</p></div><button type="button" className="seller-secondary seller-cancel" onClick={()=>setEditingBusiness('')}>Cancel</button></div>
+          <form className="seller-form seller-profile-form" onSubmit={saveSellerProfile}>
+            <div className="seller-edit-grid">
+              <label>Business name<input required maxLength="100" value={profileForm.name||''} onChange={e=>setProfileForm(s=>({...s,name:e.target.value}))}/></label>
+              <label>Category<input maxLength="60" value={profileForm.category||''} onChange={e=>setProfileForm(s=>({...s,category:e.target.value}))}/></label>
+              <label>City / location<input maxLength="80" value={profileForm.location||''} onChange={e=>setProfileForm(s=>({...s,location:e.target.value}))}/></label>
+              <label>Street address<input maxLength="180" value={profileForm.address||''} onChange={e=>setProfileForm(s=>({...s,address:e.target.value}))}/></label>
+              <label>Phone number<input type="tel" maxLength="25" value={profileForm.phone||''} onChange={e=>setProfileForm(s=>({...s,phone:e.target.value}))}/></label>
+              <label>WhatsApp number<input type="tel" maxLength="25" value={profileForm.whatsapp||''} onChange={e=>setProfileForm(s=>({...s,whatsapp:e.target.value}))}/></label>
+              <label>Website<input type="url" maxLength="200" value={profileForm.website||''} onChange={e=>setProfileForm(s=>({...s,website:e.target.value}))} placeholder="https://example.com"/></label>
+              <label>Instagram<input maxLength="100" value={profileForm.instagram||''} onChange={e=>setProfileForm(s=>({...s,instagram:e.target.value}))} placeholder="@yourbusiness"/></label>
+            </div>
+            <label>Business description<textarea rows="4" maxLength="600" value={profileForm.description||''} onChange={e=>setProfileForm(s=>({...s,description:e.target.value}))} placeholder="Describe your products, services and what makes your business useful."/></label>
+            <label>Products or services <span className="seller-muted">(one item per line, up to 30)</span><textarea rows="4" maxLength="1500" value={profileForm.productsText||''} onChange={e=>setProfileForm(s=>({...s,productsText:e.target.value}))} placeholder={'Website design\\nGraphic design\\nPrinting'}/></label>
+            <div className="seller-upload-grid">
+              <label>Business logo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSellerImage('logo',e.target.files?.[0])}/>{profileForm.logoUrl&&<img src={profileForm.logoUrl} alt="Business logo preview"/>}</label>
+              <label>Cover image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSellerImage('cover',e.target.files?.[0])}/>{profileForm.coverImage&&<img src={profileForm.coverImage} alt="Cover image preview"/>}</label>
+            </div>
+            <p className="seller-muted">Images: JPG, PNG or WebP, maximum 5 MB each. Uploaded images are not published until you save.</p>
+            {error&&<p className="seller-error" role="alert">{error}</p>}
+            {notice&&<p className="seller-success" role="status">{notice}</p>}
+            <button disabled={savingProfile||!!uploadingImage}>{uploadingImage?'Uploading image…':savingProfile?'Saving…':'Save business profile'}</button>
+          </form>
+        </section>}
         <section className="seller-section"><h2>Request access to a business</h2>
           <p className="seller-muted">Choose your existing approved listing. NaijaShelf will review the request and verify your connection to the business before linking it.</p>
           {requests.map(item=><div className="seller-request" key={item.id}><b>{item.businessName}</b><span className={'seller-status '+item.status}>{item.status}</span><small>Request submitted · {item.createdAt?.toDate?.().toLocaleDateString()||'Just now'}</small></div>)}
