@@ -306,3 +306,9 @@
     width: 100%;
   }
 }
+
+/* Direct seller portal access */
+.seller-dashboard-link{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;border:1px solid #dce3d4;border-radius:8px;color:#344b35;font-size:11px;font-weight:800;white-space:nowrap;transition:background .2s,border-color .2s}
+.seller-dashboard-link:hover{background:#eef2e8;border-color:#b9c8aa}
+.seller-portal-nav-link{display:flex;align-items:center;gap:6px;color:#526b45;font-weight:800}
+@media(max-width:680px){.seller-portal-nav-link{padding:10px 12px;background:#edf1e7;border:1px solid #dce5d3;border-radius:8px;width:100%}}
