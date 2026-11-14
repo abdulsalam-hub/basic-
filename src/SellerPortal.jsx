@@ -153,8 +153,22 @@ export default function SellerPortal() {
         <div className="seller-dashboard-head"><div><div className="seller-kicker"><ShieldCheck size={14}/> SELLER WORKSPACE</div><h1>Hello, {clean(user.displayName)||user.email?.split('@')[0]}</h1><p className="seller-intro">Your account is verified. Access to a business listing requires NaijaShelf approval.</p></div><button className="seller-signout" onClick={()=>signOut(auth)}><LogOut size={14}/> Sign out</button></div>
         {error && <p className="seller-error" role="alert">{error}</p>}
         {notice && <p className="seller-success" role="status">{notice}</p>}
-        <section className="seller-section"><h2>Your linked businesses</h2>
-          {ownedBusinesses.length ? <div className="seller-business-list">{ownedBusinesses.map(item=><article key={item.id}><div><b>{item.name}</b><span>{item.category||'Business'} · {item.location||item.city||'Location not set'}</span></div><a href={'/business/'+encodeURIComponent(item.id)}>View public profile</a></article>)}</div> : <p className="seller-muted">No business has been linked to this account yet.</p>}
+        <section className="seller-overview">
+          <div className="seller-overview-heading"><div><span className="seller-kicker">YOUR BUSINESS OVERVIEW</span><h2>Business dashboard</h2><p>Manage your NaijaShelf presence and keep your listing information up to date.</p></div></div>
+          <div className="seller-stat-grid">
+            <article><span>Linked businesses</span><b>{ownedBusinesses.length}</b><small>Connected to your account</small></article>
+            <article><span>Approved listings</span><b>{ownedBusinesses.filter(item=>item.status==='approved').length}</b><small>Visible in the directory</small></article>
+            <article><span>Verified businesses</span><b>{ownedBusinesses.filter(item=>item.isVerified===true).length}</b><small>Independently verified by NaijaShelf</small></article>
+          </div>
+        </section>
+        <section className="seller-section"><h2>Your businesses</h2>
+          {ownedBusinesses.length ? <div className="seller-business-list">{ownedBusinesses.map(item=><article className="seller-business-card" key={item.id}>
+            <div className="seller-business-identity">
+              <div className="seller-business-logo">{item.logoUrl?<img src={item.logoUrl} alt=""/>:<Store size={21}/>}</div>
+              <div><b>{item.name}</b><span>{item.category||'Business'} · {item.location||item.city||'Location not set'}</span><small className="seller-listing-state"><i/> Approved and published</small></div>
+            </div>
+            <div className="seller-business-actions"><a href={'/business/'+encodeURIComponent(item.id)}>View public profile</a></div>
+          </article>)}</div> : <p className="seller-muted">No business has been linked to this account yet.</p>}
         </section>
         <section className="seller-section"><h2>Request access to a business</h2>
           <p className="seller-muted">Choose your existing approved listing. NaijaShelf will review the request and verify your connection to the business before linking it.</p>
