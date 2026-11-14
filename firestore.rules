@@ -147,6 +147,54 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Seller access requests are private to the requesting seller and administrators.
+    match /sellerAccessRequests/{requestId} {
+      allow create: if request.auth != null &&
+        request.auth.token.email_verified == true &&
+        request.resource.data.keys().hasOnly([
+          'sellerUid', 'sellerEmail', 'sellerName', 'businessId',
+          'businessName', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'sellerUid', 'sellerEmail', 'sellerName', 'businessId',
+          'businessName', 'status', 'createdAt'
+        ]) &&
+        request.resource.data.sellerUid == request.auth.uid &&
+        request.resource.data.sellerEmail == request.auth.token.email &&
+        request.resource.data.sellerName is string &&
+        request.resource.data.sellerName.size() >= 2 &&
+        request.resource.data.sellerName.size() <= 80 &&
+        request.resource.data.businessId is string &&
+        request.resource.data.businessId.size() >= 1 &&
+        request.resource.data.businessId.size() <= 128 &&
+        get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status == 'approved' &&
+        request.resource.data.businessName is string &&
+        request.resource.data.businessName.size() >= 2 &&
+        request.resource.data.businessName.size() <= 100 &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdAt is timestamp;
+
+      allow read: if isAdmin() || (
+        request.auth != null && resource.data.sellerUid == request.auth.uid
+      );
+
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedAt', 'reviewedBy'
+        ]) &&
+        request.resource.data.status in ['approved', 'rejected'];
+
+      allow delete: if isAdmin();
+    }
+
+    // Private ownership mapping; seller UIDs are not exposed in public business documents.
+    match /businessOwnership/{businessId} {
+      allow get, list: if isAdmin() || (
+        request.auth != null && resource.data.ownerUid == request.auth.uid
+      );
+      allow create, update, delete: if isAdmin();
+    }
+
     match /sellerSubmissions/{submissionId} {
       allow create: if
         request.resource.data.keys().hasOnly([
