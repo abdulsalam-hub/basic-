@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
+    function isLinkedSeller(businessId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/businessOwnership/$(businessId)) &&
+        get(/databases/$(database)/documents/businessOwnership/$(businessId)).data.ownerUid == request.auth.uid;
+    }
+
     // Admin-only collection-group access for review moderation.
     match /{path=**}/reviews/{reviewId} {
       allow read: if isAdmin();
@@ -13,7 +19,42 @@ service cloud.firestore {
     match /businesses/{businessId} {
       // Public visitors may read approved listings; administrators may read all business records.
       allow get, list: if resource.data.status == 'approved' || isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isLinkedSeller(businessId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'category', 'location', 'city', 'address', 'description',
+          'whatsapp', 'phone', 'website', 'instagram', 'logoUrl', 'coverImage',
+          'products', 'updatedAt', 'updatedBy'
+        ]) &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() >= 2 &&
+        request.resource.data.name.size() <= 100 &&
+        request.resource.data.category is string &&
+        request.resource.data.category.size() <= 60 &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() <= 600 &&
+        request.resource.data.location is string &&
+        request.resource.data.location.size() <= 80 &&
+        request.resource.data.city is string &&
+        request.resource.data.city.size() <= 80 &&
+        request.resource.data.address is string &&
+        request.resource.data.address.size() <= 180 &&
+        request.resource.data.phone is string &&
+        request.resource.data.phone.size() <= 25 &&
+        request.resource.data.whatsapp is string &&
+        request.resource.data.whatsapp.size() <= 25 &&
+        request.resource.data.website is string &&
+        request.resource.data.website.size() <= 200 &&
+        request.resource.data.instagram is string &&
+        request.resource.data.instagram.size() <= 100 &&
+        request.resource.data.logoUrl is string &&
+        request.resource.data.coverImage is string &&
+        request.resource.data.products is list &&
+        request.resource.data.products.size() <= 30 &&
+        request.resource.data.updatedAt is timestamp
+      );
 
       match /reviews/{reviewId} {
         allow read: if isAdmin() || (
