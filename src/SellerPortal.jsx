@@ -229,7 +229,7 @@ export default function SellerPortal() {
 
   return <main className="seller-page">
     <a className="seller-back" href="/"><ArrowLeft size={15}/> Back to NaijaShelf</a>
-    <section className="seller-card">
+    <section className="seller-portal-card">
       <a href="/" className="seller-brand"><span><Store size={20}/></span><b>naija<span>shelf</span><i>.</i></b></a>
       {!user ? <>
         <div className="seller-kicker"><ShieldCheck size={14}/> SELLER ACCOUNT</div>
