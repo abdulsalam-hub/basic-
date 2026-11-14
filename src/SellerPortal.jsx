@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification,
-  signInWithEmailAndPassword, signOut, reload
+  signInWithEmailAndPassword, signOut, reload, updateProfile
 } from 'firebase/auth';
 import {
   addDoc, collection, getDoc, getDocs, onSnapshot, query, where, doc, serverTimestamp
@@ -61,7 +61,7 @@ export default function SellerPortal() {
         if (clean(name).length<2) throw new Error('Please enter your full name.');
         if (password.length<8) throw new Error('Use a password with at least 8 characters.');
         const result = await createUserWithEmailAndPassword(auth,clean(email).toLowerCase(),password);
-        await result.user.updateProfile?.({displayName:clean(name)});
+        await updateProfile(result.user,{displayName:clean(name)});
         await sendEmailVerification(result.user);
         setNotice('Account created. Check your email and verify your address, then return here and tap “I have verified my email”.');
       } else {
