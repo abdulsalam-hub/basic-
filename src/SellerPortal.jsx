@@ -46,6 +46,7 @@ export default function SellerPortal() {
   const [analytics,setAnalytics] = useState({});
   const [analyticsLoading,setAnalyticsLoading] = useState(false);
   const [analyticsError,setAnalyticsError] = useState('');
+  const [analyticsRefresh,setAnalyticsRefresh] = useState(0);
 
   useEffect(() => onAuthStateChanged(auth,current => {
     setUser(current);
@@ -97,7 +98,7 @@ export default function SellerPortal() {
       .catch(error=>{console.error('Seller analytics load failed:',error);if(!cancelled)setAnalyticsError('Analytics could not be loaded. Check that the latest Firestore Rules are published, then refresh.');})
       .finally(()=>{if(!cancelled)setAnalyticsLoading(false);});
     return ()=>{cancelled=true;};
-  },[user?.uid,user?.emailVerified,ownedBusinesses.map(item=>item.id).join('|')]);
+  },[user?.uid,user?.emailVerified,ownedBusinesses.map(item=>item.id).join('|'),analyticsRefresh]);
 
   const beginEdit = business => {
     setEditingBusiness(business.id);
@@ -274,7 +275,7 @@ export default function SellerPortal() {
           </article>)}</div> : <p className="seller-muted">No business has been linked to this account yet.</p>}
         </section>
         <section className="seller-section seller-analytics-section">
-          <div className="seller-editor-heading"><div><span className="seller-kicker">BUSINESS INSIGHTS</span><h2>Performance analytics</h2><p className="seller-muted">Daily activity and the last seven days for each linked listing.</p></div><button type="button" className="seller-secondary seller-refresh-analytics" onClick={()=>setOwnedBusinesses(items=>[...items])}>Refresh</button></div>
+          <div className="seller-editor-heading"><div><span className="seller-kicker">BUSINESS INSIGHTS</span><h2>Performance analytics</h2><p className="seller-muted">Daily activity and the last seven days for each linked listing.</p></div><button type="button" className="seller-secondary seller-refresh-analytics" onClick={()=>setAnalyticsRefresh(value=>value+1)}>Refresh</button></div>
           {analyticsLoading&&<p className="seller-muted">Loading your business performance…</p>}
           {analyticsError&&<p className="seller-error" role="alert">{analyticsError}</p>}
           {!analyticsLoading&&!analyticsError&&ownedBusinesses.map(business=>{
