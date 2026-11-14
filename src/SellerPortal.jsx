@@ -11,6 +11,8 @@ import { auth, db } from './firebase.js';
 import './seller.css';
 
 const clean = value => String(value || '').trim();
+const sellerDays = [['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],['thursday','Thursday'],['friday','Friday'],['saturday','Saturday'],['sunday','Sunday']];
+const sellerDefaultHours = Object.fromEntries(sellerDays.map(([day])=>[day,{open:'09:00',close:'18:00',closed:false}]));
 
 export default function SellerPortal() {
   const [user,setUser] = useState(null);
@@ -65,7 +67,8 @@ export default function SellerPortal() {
       location:business.location||business.city||'', address:business.address||'',
       phone:business.phone||'', whatsapp:business.whatsapp||'', website:business.website||'',
       instagram:business.instagram||'', logoUrl:business.logoUrl||'', coverImage:business.coverImage||'',
-      productsText:Array.isArray(business.products)?business.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\\n'):''
+      productsText:Array.isArray(business.products)?business.products.map(p=>typeof p==='string'?p:(p.name||p.title||'')).join('\\n'):'',
+      hours:Object.fromEntries(sellerDays.map(([day])=>[day,{...sellerDefaultHours[day],...(business.hours?.[day]||{})}]))
     });
     setError(''); setNotice('');
   };
@@ -105,6 +108,7 @@ export default function SellerPortal() {
         website:clean(profileForm.website), instagram:clean(profileForm.instagram),
         logoUrl:clean(profileForm.logoUrl), coverImage:clean(profileForm.coverImage),
         products:profileForm.productsText.split('\\n').map(clean).filter(Boolean).slice(0,30),
+        hours:profileForm.hours,
         updatedAt:serverTimestamp(), updatedBy:user.uid
       });
       setNotice('Business profile updated successfully.');
@@ -245,6 +249,7 @@ export default function SellerPortal() {
             </div>
             <label>Business description<textarea rows="4" maxLength="600" value={profileForm.description||''} onChange={e=>setProfileForm(s=>({...s,description:e.target.value}))} placeholder="Describe your products, services and what makes your business useful."/></label>
             <label>Products or services <span className="seller-muted">(one item per line, up to 30)</span><textarea rows="4" maxLength="1500" value={profileForm.productsText||''} onChange={e=>setProfileForm(s=>({...s,productsText:e.target.value}))} placeholder={'Website design\\nGraphic design\\nPrinting'}/></label>
+            <div className="seller-hours-editor"><b>Opening hours</b><p className="seller-muted">Set your regular weekly business hours.</p>{sellerDays.map(([day,label])=><div className="seller-hour-row" key={day}><strong>{label}</strong><label className="seller-closed-toggle"><input type="checkbox" checked={!!profileForm.hours?.[day]?.closed} onChange={e=>setProfileForm(s=>({...s,hours:{...s.hours,[day]:{...s.hours[day],closed:e.target.checked}}}))}/> Closed</label><input aria-label={label+' opening time'} type="time" disabled={!!profileForm.hours?.[day]?.closed} value={profileForm.hours?.[day]?.open||'09:00'} onChange={e=>setProfileForm(s=>({...s,hours:{...s.hours,[day]:{...s.hours[day],open:e.target.value}}}))}/><input aria-label={label+' closing time'} type="time" disabled={!!profileForm.hours?.[day]?.closed} value={profileForm.hours?.[day]?.close||'18:00'} onChange={e=>setProfileForm(s=>({...s,hours:{...s.hours,[day]:{...s.hours[day],close:e.target.value}}}))}/></div>)}</div>
             <div className="seller-upload-grid">
               <label>Business logo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSellerImage('logo',e.target.files?.[0])}/>{profileForm.logoUrl&&<img src={profileForm.logoUrl} alt="Business logo preview"/>}</label>
               <label>Cover image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>uploadSellerImage('cover',e.target.files?.[0])}/>{profileForm.coverImage&&<img src={profileForm.coverImage} alt="Cover image preview"/>}</label>
