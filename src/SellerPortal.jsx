@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword, signOut, reload, updateProfile
 } from 'firebase/auth';
 import {
-  addDoc, collection, getDoc, onSnapshot, query, where, doc, serverTimestamp, updateDoc
+  addDoc, collection, getDoc, getDocs, onSnapshot, query, where, doc, serverTimestamp, updateDoc
 } from 'firebase/firestore';
 import { ArrowLeft, LogOut, MailCheck, Store, ShieldCheck } from 'lucide-react';
 import { auth, db } from './firebase.js';
@@ -13,6 +13,16 @@ import './seller.css';
 const clean = value => String(value || '').trim();
 const sellerDays = [['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],['thursday','Thursday'],['friday','Friday'],['saturday','Saturday'],['sunday','Sunday']];
 const sellerDefaultHours = Object.fromEntries(sellerDays.map(([day])=>[day,{open:'09:00',close:'18:00',closed:false}]));
+
+const analyticsKey = date => {
+  const year=date.getFullYear(), month=String(date.getMonth()+1).padStart(2,'0'), day=String(date.getDate()).padStart(2,'0');
+  return year+'-'+month+'-'+day;
+};
+const analyticsDays = () => Array.from({length:7},(_,index)=>{
+  const date=new Date(); date.setHours(0,0,0,0); date.setDate(date.getDate()-(6-index));
+  return {key:analyticsKey(date),label:date.toLocaleDateString(undefined,{weekday:'short'}),dateLabel:date.toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+});
+
 
 export default function SellerPortal() {
   const [user,setUser] = useState(null);
@@ -33,6 +43,9 @@ export default function SellerPortal() {
   const [savingProfile,setSavingProfile] = useState(false);
   const [uploadingImage,setUploadingImage] = useState('');
   const [profileForm,setProfileForm] = useState({});
+  const [analytics,setAnalytics] = useState({});
+  const [analyticsLoading,setAnalyticsLoading] = useState(false);
+  const [analyticsError,setAnalyticsError] = useState('');
 
   useEffect(() => onAuthStateChanged(auth,current => {
     setUser(current);
@@ -59,6 +72,32 @@ export default function SellerPortal() {
     },err => setError('Could not load linked business accounts.'));
     return () => { stopBusinesses(); stopRequests(); stopLinks(); };
   },[user?.uid,user?.emailVerified]);
+
+
+  useEffect(() => {
+    if (!user?.emailVerified || !ownedBusinesses.length) { setAnalytics({}); return; }
+    let cancelled=false;
+    const days=analyticsDays();
+    setAnalyticsLoading(true); setAnalyticsError('');
+    Promise.all(ownedBusinesses.map(async business=>{
+      const snapshot=await getDocs(query(
+        collection(db,'businesses',business.id,'analyticsEvents'),
+        where('dateKey','>=',days[0].key)
+      ));
+      const totals={profile_view:0,whatsapp_click:0,phone_click:0};
+      const byDay=Object.fromEntries(days.map(day=>[day.key,{profile_view:0,whatsapp_click:0,phone_click:0}]));
+      snapshot.docs.forEach(item=>{
+        const event=item.data();
+        if(totals[event.type]!==undefined && byDay[event.dateKey]) {
+          totals[event.type]+=1; byDay[event.dateKey][event.type]+=1;
+        }
+      });
+      return [business.id,{totals,days:days.map(day=>({...day,...byDay[day.key]}))}];
+    })).then(rows=>{if(!cancelled)setAnalytics(Object.fromEntries(rows));})
+      .catch(error=>{console.error('Seller analytics load failed:',error);if(!cancelled)setAnalyticsError('Analytics could not be loaded. Check that the latest Firestore Rules are published, then refresh.');})
+      .finally(()=>{if(!cancelled)setAnalyticsLoading(false);});
+    return ()=>{cancelled=true;};
+  },[user?.uid,user?.emailVerified,ownedBusinesses.map(item=>item.id).join('|')]);
 
   const beginEdit = business => {
     setEditingBusiness(business.id);
@@ -233,6 +272,36 @@ export default function SellerPortal() {
             </div>
             <div className="seller-business-actions"><a href={'/business/'+encodeURIComponent(item.id)}>View public profile</a><button type="button" onClick={()=>beginEdit(item)}>Edit profile</button></div>
           </article>)}</div> : <p className="seller-muted">No business has been linked to this account yet.</p>}
+        </section>
+        <section className="seller-section seller-analytics-section">
+          <div className="seller-editor-heading"><div><span className="seller-kicker">BUSINESS INSIGHTS</span><h2>Performance analytics</h2><p className="seller-muted">Daily activity and the last seven days for each linked listing.</p></div><button type="button" className="seller-secondary seller-refresh-analytics" onClick={()=>setOwnedBusinesses(items=>[...items])}>Refresh</button></div>
+          {analyticsLoading&&<p className="seller-muted">Loading your business performance…</p>}
+          {analyticsError&&<p className="seller-error" role="alert">{analyticsError}</p>}
+          {!analyticsLoading&&!analyticsError&&ownedBusinesses.map(business=>{
+            const report=analytics[business.id]||{totals:{profile_view:0,whatsapp_click:0,phone_click:0},days:analyticsDays().map(day=>({...day,profile_view:0,whatsapp_click:0,phone_click:0}))};
+            const maxValue=Math.max(1,...report.days.map(day=>day.profile_view+day.whatsapp_click+day.phone_click));
+            const total=report.totals.profile_view+report.totals.whatsapp_click+report.totals.phone_click;
+            return <article className="seller-analytics-card" key={business.id}>
+              <div className="seller-analytics-title"><b>{business.name}</b><span>Last 7 days</span></div>
+              <div className="seller-analytics-metrics">
+                <div><span>Profile visitors</span><b>{report.totals.profile_view}</b></div>
+                <div><span>WhatsApp clickers</span><b>{report.totals.whatsapp_click}</b></div>
+                <div><span>Phone clickers</span><b>{report.totals.phone_click}</b></div>
+              </div>
+              <div className="seller-daily-report"><b>Daily performance</b>
+                {report.days.map(day=>{
+                  const activity=day.profile_view+day.whatsapp_click+day.phone_click;
+                  return <div className="seller-daily-row" key={day.key}>
+                    <span><b>{day.label}</b><small>{day.dateLabel}</small></span>
+                    <div className="seller-daily-track"><i style={{width:(activity/maxValue*100)+'%'}}/></div>
+                    <strong>{activity}</strong>
+                  </div>;
+                })}
+              </div>
+              <p className="seller-analytics-note">Total recorded actions: {total}. Visitors and contact clickers are deduplicated per signed-in browser account per day. These figures are activity signals, not confirmed sales or completed conversations.</p>
+            </article>;
+          })}
+          {!ownedBusinesses.length&&<p className="seller-muted">Link an approved business to see its performance.</p>}
         </section>
         {editingBusiness && <section className="seller-section seller-editor-section">
           <div className="seller-editor-heading"><div><span className="seller-kicker">BUSINESS SETTINGS</span><h2>Edit business profile</h2><p className="seller-muted">Changes are published to your approved listing after you save.</p></div><button type="button" className="seller-secondary seller-cancel" onClick={()=>setEditingBusiness('')}>Cancel</button></div>
