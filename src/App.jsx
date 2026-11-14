@@ -180,9 +180,10 @@ const filtered = useMemo(() => {
         <a href="#discover" onClick={()=>setMenuOpen(false)}>Explore businesses</a>
         <a href="#how" onClick={()=>setMenuOpen(false)}>How it works</a>
         <a href="#pricing" onClick={()=>setMenuOpen(false)}>For sellers</a>
+        <a className="seller-portal-nav-link" href="/seller" onClick={()=>setMenuOpen(false)}>Seller login / dashboard <ArrowUpRight size={14}/></a>
         <a href="#faq" onClick={()=>setMenuOpen(false)}>FAQs</a>
       </nav>
-      <div className="header-actions"><a className="login-link" href="#pricing">For business owners</a><button className="btn btn-dark btn-small" onClick={()=>setModal(true)}>List your business <ArrowUpRight size={15}/></button></div>
+      <div className="header-actions"><a className="seller-dashboard-link" href="/seller">Seller login <ArrowUpRight size={14}/></a><button className="btn btn-dark btn-small" onClick={()=>setModal(true)}>List your business <ArrowUpRight size={15}/></button></div>
       <button className="mobile-menu" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-controls="primary-navigation" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}>{menuOpen ? <X/> : <Menu/>}</button>
     </header>
 
