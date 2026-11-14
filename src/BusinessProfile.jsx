@@ -17,6 +17,24 @@ const timeLabel = value => {
   return (hour % 12 || 12) + ':' + minute + (hour >= 12 ? ' PM' : ' AM');
 };
 
+
+const analyticsDateKey = date => {
+  const year=date.getFullYear(), month=String(date.getMonth()+1).padStart(2,'0'), day=String(date.getDate()).padStart(2,'0');
+  return year+'-'+month+'-'+day;
+};
+async function recordBusinessEvent(businessId,type) {
+  try {
+    const user=auth.currentUser || (await signInAnonymously(auth)).user;
+    const dateKey=analyticsDateKey(new Date());
+    const eventId=user.uid+'_'+dateKey+'_'+type;
+    await setDoc(doc(db,'businesses',businessId,'analyticsEvents',eventId),{
+      uid:user.uid,type,dateKey,createdAt:serverTimestamp()
+    });
+  } catch(error) {
+    if(error.code!=='permission-denied' && error.code!=='firestore/already-exists') console.warn('Business analytics event was not recorded:',error);
+  }
+}
+
 function CustomerReviews({ business }) {
   const [reviews,setReviews] = useState([]);
   const [rating,setRating] = useState(5);
@@ -225,6 +243,10 @@ export default function BusinessProfile({ id, onBack }) {
   }, [id]);
 
   useEffect(() => {
+    if (business?.id) recordBusinessEvent(business.id,'profile_view');
+  }, [business?.id]);
+
+  useEffect(() => {
     if (!business) return;
 
     const previousTitle = document.title;
@@ -358,8 +380,8 @@ export default function BusinessProfile({ id, onBack }) {
         <CustomerReviews business={business}/>
       </section>
       <aside className="profile-sidebar"><div className="profile-contact-card"><span className="profile-kicker">CONNECT WITH THE SELLER</span><h2>Ready to make an enquiry?</h2><p>Contact the business directly to ask questions, check availability or learn more.</p>
-        {contactUrl ? <a className="profile-whatsapp" href={contactUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/> Chat on WhatsApp <ArrowUpRight size={16}/></a> : <p className="profile-muted">WhatsApp contact has not been provided.</p>}
-        {business.phone && <a className="profile-secondary-contact" href={'tel:' + String(business.phone).replace(/[^\d+]/g,'')}><Phone size={16}/> Call business</a>}
+        {contactUrl ? <a className="profile-whatsapp" href={contactUrl} onClick={()=>recordBusinessEvent(business.id,"whatsapp_click")} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/> Chat on WhatsApp <ArrowUpRight size={16}/></a> : <p className="profile-muted">WhatsApp contact has not been provided.</p>}
+        {business.phone && <a className="profile-secondary-contact" href={'tel:' + String(business.phone).replace(/[^\d+]/g,'')} onClick={()=>recordBusinessEvent(business.id,'phone_click')}><Phone size={16}/> Call business</a>}
         {website && <a className="profile-secondary-contact" href={website} target="_blank" rel="noopener noreferrer"><Globe size={16}/> Visit website</a>}
         {instagram && <a className="profile-secondary-contact" href={instagram} target="_blank" rel="noopener noreferrer"><Instagram size={16}/> Instagram</a>}
         <button className="profile-share-wide" onClick={shareProfile}><Share2 size={16}/> Share this business</button>
