@@ -312,3 +312,14 @@
 .seller-dashboard-link:hover{background:#eef2e8;border-color:#b9c8aa}
 .seller-portal-nav-link{display:flex;align-items:center;gap:6px;color:#526b45;font-weight:800}
 @media(max-width:680px){.seller-portal-nav-link{padding:10px 12px;background:#edf1e7;border:1px solid #dce5d3;border-radius:8px;width:100%}}
+
+/* Business directory pagination */
+.directory-pagination-intro{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 20px;padding:14px 16px;border:1px solid #e6eadf;border-radius:10px;background:#fbfcf9}
+.directory-pagination-intro>span{font-size:12px;color:#687363}
+.directory-pagination-intro .text-link{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:#425d3b;font-size:12px;font-weight:800;cursor:pointer}
+.directory-pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin:24px auto}
+.directory-pagination button,.directory-back-home{border:1px solid #dce3d4;border-radius:8px;background:#fff;color:#40553a;padding:10px 15px;font-size:12px;font-weight:750;cursor:pointer}
+.directory-pagination button:disabled{opacity:.4;cursor:not-allowed}
+.directory-pagination span{font-size:12px;color:#687363;font-weight:700}
+.directory-back-home{display:block;margin:12px auto 24px}
+@media(max-width:520px){.directory-pagination-intro{align-items:flex-start;flex-direction:column}.directory-pagination{gap:10px}.directory-pagination button{padding:9px 12px}}
