@@ -26,6 +26,7 @@ export default function FeaturedModeration() {
   },[]);
 
   async function toggle(item) {
+    if (!item.isFeatured && featuredCount >= 4) { setError('You can feature up to four businesses at a time. Remove one before adding another.'); return; }
     setBusyId(item.id); setError('');
     try {
       await updateDoc(doc(db,'businesses',item.id),{
@@ -52,8 +53,8 @@ export default function FeaturedModeration() {
           {item.logoUrl?<img src={item.logoUrl} alt="" loading="lazy"/>:<span className="featured-admin-monogram">{(item.name||'NS').slice(0,2).toUpperCase()}</span>}
           <div><b>{item.name}</b><span>{item.category||'Uncategorised'} · {item.location||item.city||'Location not set'}</span>{item.isVerified&&<small><BadgeCheck size={12}/> NaijaShelf verified</small>}</div>
         </div>
-        <button type="button" className={item.isFeatured?'featured-admin-remove':'featured-admin-add'} disabled={busyId===item.id} onClick={()=>toggle(item)}>
-          {busyId===item.id?'Saving…':item.isFeatured?'Remove feature':'Feature business'}
+        <button type="button" className={item.isFeatured?'featured-admin-remove':'featured-admin-add'} disabled={busyId===item.id || (!item.isFeatured && featuredCount>=4)} onClick={()=>toggle(item)}>
+          {busyId===item.id?'Saving…':item.isFeatured?'Remove feature':featuredCount>=4?'Maximum 4 featured':'Feature business'}
         </button>
       </article>)}</div>}
     <p className="featured-admin-note">Selection is editorial: review listing completeness, accurate contact details, responsiveness and customer trust before featuring. Featured status is not a paid or verified badge.</p>
