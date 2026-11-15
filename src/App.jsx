@@ -73,7 +73,7 @@ const [sortBy, setSortBy] = useState('newest');
 
     return unsubscribe;
   }, [directoryRetry]);
-  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [],
+  const liveListings = useMemo(() => published.map((item, index) => ({ id:item.id, name:item.name, ownerName:item.ownerName, whatsapp:item.whatsapp, logoUrl:item.logoUrl || '', isVerified:item.isVerified===true, isFeatured:item.isFeatured===true, category:item.category, location:item.location || item.city, tag:'Approved listing', description:item.description || 'Discover this local business and contact the seller directly.', initials:(item.name || 'NS').slice(0,2).toUpperCase(), color:['peach','cream','lilac','sage','blue','yellow'][index % 6], products:item.products || [],
 createdAt:item.createdAt,
 demo:false })), [published]);
 
@@ -219,6 +219,14 @@ const filtered = useMemo(() => {
           <span className="art-spark spark-a">✳</span><span className="art-spark spark-b">✦</span>
         </div>
 
+      </section>}
+
+      {!directoryPage && liveListings.some(item=>item.isFeatured) && <section className="featured-section" aria-labelledby="featured-heading">
+        <div className="featured-section-top"><div><div className="eyebrow"><span className="eyebrow-line"/> HANDPICKED ON NAIJASHELF</div><h2 id="featured-heading">Businesses worth <em>discovering.</em></h2><p>Thoughtfully selected local businesses to explore.</p></div></div>
+        <div className="featured-business-grid">{liveListings.filter(item=>item.isFeatured).slice(0,4).map(item=><article className="featured-business-card" key={item.id}>
+          <div className="featured-business-image">{item.logoUrl?<img src={item.logoUrl} alt={item.name+' logo'} loading="lazy" decoding="async"/>:<span>{item.initials}</span>}<span className="featured-ribbon"><Star size={12} fill="currentColor"/> Featured</span></div>
+          <div className="featured-business-body"><div className="featured-business-meta">{item.category}{item.location?' · '+item.location:''}{item.isVerified?' · Verified':''}</div><h3>{item.name}</h3><p>{item.description}</p><button type="button" onClick={()=>openProfile(item.id)}>Explore business <ArrowUpRight size={15}/></button></div>
+        </article>)}</div>
       </section>}
 
       {!directoryPage && <section className="trust-strip"><div><ShieldCheck size={17}/><span>Connect directly with sellers</span></div><span className="strip-divider"/><div><Zap size={17}/><span>Simple, mobile-first shopping</span></div><span className="strip-divider"/><div><Compass size={17}/><span>Discover businesses near you</span></div></section>}
