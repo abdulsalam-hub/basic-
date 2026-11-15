@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, onSnapshot, query as firestoreQuery, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
 import BusinessProfile from './BusinessProfile.jsx';
-import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap, MessageCircle, MapPin } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BadgeCheck, Check, ChevronDown, CircleHelp, Compass, Menu, Search, ShieldCheck, ShoppingBag, Store, X, Zap, MessageCircle, MapPin, Star } from 'lucide-react';
 
 const categories = ['All businesses', 'Fashion', 'Food & groceries', 'Beauty', 'Home & living', 'Services'];
 const listings = [
